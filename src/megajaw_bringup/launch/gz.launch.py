@@ -7,6 +7,7 @@ from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.conditions import IfCondition, UnlessCondition
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -15,18 +16,28 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     urdf_path = os.path.join(get_package_share_directory('megajaw_description'), 'urdf', 'megajaw.xacro.urdf')
     world_file_path = os.path.join(get_package_share_directory('megajaw_bringup'), 'worlds', 'my_world.sdf')
-    
+    rviz_config = PathJoinSubstitution(
+        [
+            FindPackageShare('megajaw_bringup'),
+            'rviz',
+            'rviz_config.rviz',
+        ]
+    )
+
     # Launch Arguments
     use_sim_time = LaunchConfiguration('use_sim_time', default=True)
+    enable_rviz = LaunchConfiguration('rviz', default='true')
     
-    ld = LaunchDescription()
-    
-    robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        parameters=[{'robot_description': Command(['xacro ', urdf_path])}],
-        output='screen',
-    )
+    def robot_state_publisher_callback(context):
+        robot_description_content = Command(['xacro ', urdf_path])
+        robot_description = {'robot_description': robot_description_content}
+        node_robot_state_publisher = Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            output='screen',
+            parameters=[robot_description]
+        )
+        return [node_robot_state_publisher]
     
     gz_spawn_entity = Node(
         package='ros_gz_sim',
@@ -43,33 +54,47 @@ def generate_launch_description():
     )
     
     # Controller
-    # robot_controllers = PathJoinSubstitution(
-    #     [
-    #         FindPackageShare('gz_ros2_control_demos'),
-    #         'config',
-    #         'diff_drive_controller.yaml',
-    #     ]
-    # )
+    robot_controllers = PathJoinSubstitution(
+        [
+            FindPackageShare('megajaw_bringup'),
+            'config',
+            'diff_drive_controller.yaml',
+        ]
+    )
 
-
-    # diff_drive_base_controller_spawner = Node(
-    #     package='controller_manager',
-    #     executable='spawner',
-    #     arguments=[
-    #         'diff_drive_base_controller',
-    #         '--param-file',
-    #         robot_controllers,
-    #         '--controller-ros-args',
-    #         '-r /diff_drive_controller/cmd_vel:=/cmd_vel',
-    #     ],
-    # )
-
+    diff_drive_base_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'diff_drive_base_controller',
+            '--param-file',
+            robot_controllers,
+            '--controller-ros-args',
+            '-r /diff_drive_base_controller/cmd_vel:=/cmd_vel',
+        ],
+    )
     
     # Bridge
+    bridge_config = PathJoinSubstitution(
+        [
+            FindPackageShare('megajaw_bringup'),
+            'config',
+            'gz_bridge.yaml',
+        ]
+    )
+    
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        parameters=[{'config_file': bridge_config}],
+        output='screen'
+    )
+    
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        arguments=['-d', rviz_config],
+        condition=IfCondition(enable_rviz),
         output='screen'
     )
 
@@ -87,26 +112,27 @@ def generate_launch_description():
                 on_exit=[joint_state_broadcaster_spawner],
             )
         ),
-        # RegisterEventHandler(
-        #     event_handler=OnProcessExit(
-        #         target_action=joint_state_broadcaster_spawner,
-        #         on_exit=[diff_drive_base_controller_spawner],
-        #     )
-        # ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=joint_state_broadcaster_spawner,
+                on_exit=[diff_drive_base_controller_spawner],
+            )
+        ),
         bridge,
         gz_spawn_entity,
-        robot_state_publisher,
+        rviz_node,
         
         # Launch Arguments
         DeclareLaunchArgument(
             'use_sim_time',
             default_value=use_sim_time,
             description='If true, use simulated clock'),
+            
         DeclareLaunchArgument(
-            'description_format',
-            default_value='urdf',
-            description='Robot description format to use, urdf or sdf'),
+            'rviz',
+            default_value='false',
+            description='Launch RViz2'),
     ])
+    ld.add_action(OpaqueFunction(function=robot_state_publisher_callback))
     
     return ld
-    

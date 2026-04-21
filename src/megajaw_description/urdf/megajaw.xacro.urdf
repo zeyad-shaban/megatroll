@@ -3,4 +3,6 @@
     <xacro:include filename="./inertials.xacro" />
     <xacro:include filename="./materials.xacro" />
     <xacro:include filename="./body.xacro" />
+    <xacro:include filename="./ros2control.xacro" />
+    <xacro:include filename="./gz_plugins.xacro" />
 </robot>
