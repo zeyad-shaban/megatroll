@@ -1,3 +1,4 @@
+rosbag/frames
 # Build, install, and log directories from colcon
 build/
 install/

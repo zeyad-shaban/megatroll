@@ -1,0 +1,174 @@
+<sdf version='1.10'>
+  <world name='empty'>
+    <physics name='1ms' type='ignored'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+    <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system'/>
+    <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system'/>
+    <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system'/>
+    <plugin name='gz::sim::systems::Contact' filename='gz-sim-contact-system'/>
+    <gravity>0 0 -9.8000000000000007</gravity>
+    <magnetic_field>5.5644999999999998e-06 2.2875799999999999e-05 -4.2388400000000002e-05</magnetic_field>
+    <atmosphere type='adiabatic'/>
+    <scene>
+      <ambient>0.400000006 0.400000006 0.400000006 1</ambient>
+      <background>0.699999988 0.699999988 0.699999988 1</background>
+      <shadows>true</shadows>
+    </scene>
+    <model name='ground_plane'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode/>
+            </friction>
+            <bounce/>
+            <contact/>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.800000012 0.800000012 0.800000012 1</ambient>
+            <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+            <specular>0.800000012 0.800000012 0.800000012 1</specular>
+          </material>
+        </visual>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>0 0 0 0 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/OfficeChair</uri>
+      <name>OfficeChair</name>
+      <pose>1.722639730858619 -3.9445773095804597 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/OfficeChair</uri>
+      <name>OfficeChair_0</name>
+      <pose>2.1617801189422607 3.1333799362182617 0 0 0 2.3561944611298031</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/LampAndStand</uri>
+      <name>LampAndStand</name>
+      <pose>1.5860766829629158 -2.6939197755552371 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/BedsideTable2</uri>
+      <name>BedsideTable2</name>
+      <pose>-0.86144153676740021 -3.834880672312337 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Reflective_table</uri>
+      <name>Reflective table</name>
+      <pose>-0.79624098539352417 0 -4.4183199722317881e-20 -3.6339053975395957e-17 3.6645712658732653e-17 -1.5707963267948963</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Fridge</uri>
+      <name>Fridge</name>
+      <pose>-3.428149938583374 -3.8691399097442627 0 0 0 -3.1415926535897931</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Fridge</uri>
+      <name>Fridge_0</name>
+      <pose>-4.5574800657522951 1.4978732587455605 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/OfficeChair</uri>
+      <name>OfficeChair_1</name>
+      <pose>-0.8518674582214194 -1.927891054512846 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/OfficeChair</uri>
+      <name>OfficeChair_2</name>
+      <pose>-0.80356299877166748 0.54514998197555542 0 0 0 3.141588150025779</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Wallet</uri>
+      <name>Wallet</name>
+      <pose>-2.0432891705147611 -4.9533981795653155 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Red_Wallet</uri>
+      <name>RedWallet</name>
+      <pose>-2.0375580510511178 -5.2731862678729531 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Leather_Wallet_for_Men_Unfolded_02</uri>
+      <name>LeatherWalletForMenUnfolded02</name>
+      <pose>-2.4533200263977051 -5.3983268737792969 0.17309755086898804 -0.5305939794668777 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Wallet1</uri>
+      <name>Wallet1</name>
+      <pose>-2.4127891694222718 -5.5531415970226154 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Wallet2</uri>
+      <name>Wallet2</name>
+      <pose>-1.9800966573285359 -5.6504766199294671 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Brown_Leather_Wallet</uri>
+      <name>BrownLeatherWallet</name>
+      <pose>-2.5081601142883301 -4.9038600921630859 0.080615982413291931 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Old_wallet</uri>
+      <name>OldWallet</name>
+      <pose>-2.0657331193824091 -4.5692320484866311 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>file:///home/zeyadcode/.gz/sim/models/Ridge_wallet</uri>
+      <name>RidgeWallet</name>
+      <pose>-2.5185201168060303 -4.6053800582885742 0.10053373128175735 0 0 0</pose>
+    </include>
+    <light name='sun' type='directional'>
+      <pose>0 0 10 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>-0.5 0.10000000000000001 -0.90000000000000002</direction>
+      <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+      <specular>0.200000003 0.200000003 0.200000003 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <linear>0.01</linear>
+        <constant>0.90000000000000002</constant>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+  </world>
+</sdf>

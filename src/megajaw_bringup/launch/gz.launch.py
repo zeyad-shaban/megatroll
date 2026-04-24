@@ -15,7 +15,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     urdf_path = os.path.join(get_package_share_directory('megajaw_description'), 'urdf', 'megajaw.xacro.urdf')
-    world_file_path = os.path.join(get_package_share_directory('megajaw_bringup'), 'worlds', 'my_world.sdf')
+    world_file_path = os.path.join(get_package_share_directory('megajaw_bringup'), 'worlds', 'ai_training_world.sdf')
     rviz_config = PathJoinSubstitution(
         [
             FindPackageShare('megajaw_bringup'),
