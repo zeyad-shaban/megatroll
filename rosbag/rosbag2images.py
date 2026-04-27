@@ -8,10 +8,10 @@ from rosbag2_py import SequentialReader, StorageOptions, ConverterOptions
 from sensor_msgs.msg import CompressedImage
 
 # ===== config =====
-bag_path = "rosbag2_2026_04_23-05_42_45"
+bag_path = "rosbag2_2026_04_27-10_46_24"
 output_dir = "frames"
 topic_name = "/camera/image/compressed"
-step_every = 1   # save every Nth frame (1 = all frames, 2 = every other frame, etc.)
+step_every = 5   # save every Nth frame (1 = all frames, 2 = every other frame, etc.)
 
 os.makedirs(output_dir, exist_ok=True)
 

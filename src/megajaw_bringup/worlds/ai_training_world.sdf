@@ -1,17 +1,28 @@
 <sdf version='1.10'>
   <world name='empty'>
     <physics name='1ms' type='ignored'>
-      <max_step_size>0.001</max_step_size>
-      <real_time_factor>1</real_time_factor>
-      <real_time_update_rate>1000</real_time_update_rate>
+      <max_step_size>0.004</max_step_size>
+      <real_time_factor>0.5</real_time_factor>
+      <real_time_update_rate>250</real_time_update_rate>
     </physics>
-    <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system'/>
-    <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system'/>
-    <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system'/>
-    <plugin name='gz::sim::systems::Contact' filename='gz-sim-contact-system'/>
+
+    <plugin name="gz::sim::systems::SceneBroadcaster" filename="gz-sim-scene-broadcaster-system">
+      <dynamic_pose_hertz>30</dynamic_pose_hertz>
+      <state_hertz>30</state_hertz>
+      <tf_hertz>30</tf_hertz>
+    </plugin>
+
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system' />
+    <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system' />
+    <plugin name='gz::sim::systems::Contact' filename='gz-sim-contact-system' />
+
     <gravity>0 0 -9.8000000000000007</gravity>
     <magnetic_field>5.5644999999999998e-06 2.2875799999999999e-05 -4.2388400000000002e-05</magnetic_field>
-    <atmosphere type='adiabatic'/>
+    <atmosphere type='adiabatic' />
     <scene>
       <ambient>0.400000006 0.400000006 0.400000006 1</ambient>
       <background>0.699999988 0.699999988 0.699999988 1</background>
@@ -29,10 +40,10 @@
           </geometry>
           <surface>
             <friction>
-              <ode/>
+              <ode />
             </friction>
-            <bounce/>
-            <contact/>
+            <bounce />
+            <contact />
           </surface>
         </collision>
         <visual name='visual'>
@@ -66,91 +77,1884 @@
       <pose>0 0 0 0 0 0</pose>
       <self_collide>false</self_collide>
     </model>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/OfficeChair</uri>
-      <name>OfficeChair</name>
+    <model name='OfficeChair'>
+      <static>true</static>
+      <link name='base_link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://OfficeChair/meshes/officechair.dae</uri>
+            </mesh>
+          </geometry>
+          <material>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>1 1 1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>model://OfficeChair/materials/textures/OfficeChair_Albedo.png</albedo_map>
+                <normal_map>model://OfficeChair/materials/textures/OfficeChair_Normal.png</normal_map>
+                <roughness_map>model://OfficeChair/materials/textures/OfficeChair_Roughness.png</roughness_map>
+                <metalness_map>model://OfficeChair/materials/textures/OfficeChair_Metalness.png</metalness_map>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <collision name='Box001'>
+          <pose>0 0.039620000000000002 0.46684999999999999 0.087266499999999997 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.51124899999999995 0.57835899999999996 0.108987</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box002'>
+          <pose>0 -0.20027800000000001 0.76638499999999998 -1.48353 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.51124899999999995 0.66511299999999995 0.108987</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder001'>
+          <pose>0 0 0.23957700000000001 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <length>0.39559100000000003</length>
+              <radius>0.0321281</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder002'>
+          <pose>0.40693400000000002 -0.124695 0.037183000000000001 1.5707999999999998
+            -1.3877787807814457e-17 -0.067165099999999991</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder003'>
+          <pose>0.243918 0.34860400000000002 0.037183000000000001 1.5708 0 1.17814</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder004'>
+          <pose>-0.25597700000000001 0.33987299999999998 0.037183000000000001 1.5708
+            5.5511151231257827e-17 2.4422899999999998</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder005'>
+          <pose>-0.40242 -0.13893 0.037183000000000001 1.5708 -1.1102230246251565e-16
+            -2.5741999999999998</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder006'>
+          <pose>0.0073951599999999996 -0.42568899999999998 0.037183000000000001 1.5708
+            2.2204460492503131e-16 1.8212999999999999</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box003'>
+          <pose>0 -0.208233 0.12911 0.069925299999999996 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box004'>
+          <pose>-0.19804099999999999 -0.064347500000000002 0.12911 0.069925299999999996 0 -1.25664</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box005'>
+          <pose>-0.122396 0.168464 0.12911 0.069925299999999996 0 -2.5132699999999999</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box006'>
+          <pose>0.122396 0.168464 0.12911 0.069925299999999996 0 2.5132699999999999</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box007'>
+          <pose>0.19804099999999999 -0.064347699999999994 0.12911 0.069925299999999996 0 1.25664</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box008'>
+          <pose>-0.275812 -0.0026205 0.74155499999999996 1.5708 0.13962600000000008 -1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.26451999999999998 0.043899199999999999 0.065929100000000004</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box009'>
+          <pose>-0.27317900000000001 -0.018006399999999999 0.59989199999999998 1.5708
+            0.13962600000000008 -1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.066130099999999997 0.28095500000000001 0.036920300000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box010'>
+          <pose>0.27596500000000002 -0.0026205199999999999 0.74155499999999996 1.5708
+            -0.13962600000000008 1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.26451999999999998 0.043899199999999999 0.065929100000000004</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box011'>
+          <pose>0.27345999999999998 -0.018006399999999999 0.59989199999999998 1.5708
+            -0.13962600000000008 1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.066130099999999997 0.28095500000000001 0.036920300000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
       <pose>1.722639730858619 -3.9445773095804597 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/OfficeChair</uri>
-      <name>OfficeChair_0</name>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='OfficeChair_0'>
+      <static>true</static>
+      <link name='base_link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://OfficeChair/meshes/officechair.dae</uri>
+            </mesh>
+          </geometry>
+          <material>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>1 1 1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>model://OfficeChair/materials/textures/OfficeChair_Albedo.png</albedo_map>
+                <normal_map>model://OfficeChair/materials/textures/OfficeChair_Normal.png</normal_map>
+                <roughness_map>model://OfficeChair/materials/textures/OfficeChair_Roughness.png</roughness_map>
+                <metalness_map>model://OfficeChair/materials/textures/OfficeChair_Metalness.png</metalness_map>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <collision name='Box001'>
+          <pose>0 0.039620000000000002 0.46684999999999999 0.087266499999999997 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.51124899999999995 0.57835899999999996 0.108987</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box002'>
+          <pose>0 -0.20027800000000001 0.76638499999999998 -1.48353 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.51124899999999995 0.66511299999999995 0.108987</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder001'>
+          <pose>0 0 0.23957700000000001 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <length>0.39559100000000003</length>
+              <radius>0.0321281</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder002'>
+          <pose>0.40693400000000002 -0.124695 0.037183000000000001 1.5707999999999998
+            -1.3877787807814457e-17 -0.067165099999999991</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder003'>
+          <pose>0.243918 0.34860400000000002 0.037183000000000001 1.5708 0 1.17814</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder004'>
+          <pose>-0.25597700000000001 0.33987299999999998 0.037183000000000001 1.5708
+            5.5511151231257827e-17 2.4422899999999998</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder005'>
+          <pose>-0.40242 -0.13893 0.037183000000000001 1.5708 -1.1102230246251565e-16
+            -2.5741999999999998</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder006'>
+          <pose>0.0073951599999999996 -0.42568899999999998 0.037183000000000001 1.5708
+            2.2204460492503131e-16 1.8212999999999999</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box003'>
+          <pose>0 -0.208233 0.12911 0.069925299999999996 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box004'>
+          <pose>-0.19804099999999999 -0.064347500000000002 0.12911 0.069925299999999996 0 -1.25664</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box005'>
+          <pose>-0.122396 0.168464 0.12911 0.069925299999999996 0 -2.5132699999999999</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box006'>
+          <pose>0.122396 0.168464 0.12911 0.069925299999999996 0 2.5132699999999999</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box007'>
+          <pose>0.19804099999999999 -0.064347699999999994 0.12911 0.069925299999999996 0 1.25664</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box008'>
+          <pose>-0.275812 -0.0026205 0.74155499999999996 1.5708 0.13962600000000008 -1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.26451999999999998 0.043899199999999999 0.065929100000000004</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box009'>
+          <pose>-0.27317900000000001 -0.018006399999999999 0.59989199999999998 1.5708
+            0.13962600000000008 -1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.066130099999999997 0.28095500000000001 0.036920300000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box010'>
+          <pose>0.27596500000000002 -0.0026205199999999999 0.74155499999999996 1.5708
+            -0.13962600000000008 1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.26451999999999998 0.043899199999999999 0.065929100000000004</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box011'>
+          <pose>0.27345999999999998 -0.018006399999999999 0.59989199999999998 1.5708
+            -0.13962600000000008 1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.066130099999999997 0.28095500000000001 0.036920300000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
       <pose>2.1617801189422607 3.1333799362182617 0 0 0 2.3561944611298031</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/LampAndStand</uri>
-      <name>LampAndStand</name>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='LampAndStand'>
+      <static>true</static>
+      <link name='body'>
+        <pose>0 0 0 0 0 0</pose>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://LampAndStand/meshes/LampAndStand.obj</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://LampAndStand/meshes/LampAndStand_Col.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
       <pose>1.5860766829629158 -2.6939197755552371 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/BedsideTable2</uri>
-      <name>BedsideTable2</name>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='BedsideTable2'>
+      <static>true</static>
+      <link name='body'>
+        <pose>0 0 0 0 0 0</pose>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://BedsideTable2/meshes/BedsideTable2.obj</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://BedsideTable2/meshes/BedsideTable2_Col.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
       <pose>-0.86144153676740021 -3.834880672312337 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Reflective_table</uri>
-      <name>Reflective table</name>
-      <pose>-0.79624098539352417 0 -4.4183199722317881e-20 -3.6339053975395957e-17 3.6645712658732653e-17 -1.5707963267948963</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Fridge</uri>
-      <name>Fridge</name>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='Reflective table'>
+      <static>true</static>
+      <link name='link'>
+        <pose>0 0 0 3.1415899999999999 0.0015926499999999999 3.1415899999999999</pose>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <scale>0.59999999999999998 0.59999999999999998 0.59999999999999998</scale>
+              <uri>model://Reflective_table/meshes/Table.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <scale>0.59999999999999998 0.59999999999999998 0.59999999999999998</scale>
+              <uri>model://Reflective_table/meshes/Table.dae</uri>
+            </mesh>
+          </geometry>
+          <material>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>1 1 1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>model://Reflective_table/materials/textures/Table_Table_BaseColor.png</albedo_map>
+                <normal_map>model://Reflective_table/materials/textures/Table_Table_Normal.png</normal_map>
+                <roughness_map>model://Reflective_table/materials/textures/Table_Roughness.png</roughness_map>
+                <environment_map>model://Reflective_table/materials/textures/DepotEnvMap.dds</environment_map>
+                <metalness>0.1</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-0.79624098539352417 0 -4.4183199722317881e-20 -2.6535864374336721e-06
+        -3.5827571551921904e-09 -1.5707936774313411</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='Fridge'>
+      <static>true</static>
+      <link name='body'>
+        <pose>0 0 0 0 0 0</pose>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Fridge/meshes/Fridge.obj</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://Fridge/meshes/Fridge_Col.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
       <pose>-3.428149938583374 -3.8691399097442627 0 0 0 -3.1415926535897931</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Fridge</uri>
-      <name>Fridge_0</name>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='Fridge_0'>
+      <static>true</static>
+      <link name='body'>
+        <pose>0 0 0 0 0 0</pose>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Fridge/meshes/Fridge.obj</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://Fridge/meshes/Fridge_Col.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
       <pose>-4.5574800657522951 1.4978732587455605 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/OfficeChair</uri>
-      <name>OfficeChair_1</name>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='OfficeChair_1'>
+      <static>true</static>
+      <link name='base_link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://OfficeChair/meshes/officechair.dae</uri>
+            </mesh>
+          </geometry>
+          <material>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>1 1 1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>model://OfficeChair/materials/textures/OfficeChair_Albedo.png</albedo_map>
+                <normal_map>model://OfficeChair/materials/textures/OfficeChair_Normal.png</normal_map>
+                <roughness_map>model://OfficeChair/materials/textures/OfficeChair_Roughness.png</roughness_map>
+                <metalness_map>model://OfficeChair/materials/textures/OfficeChair_Metalness.png</metalness_map>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <collision name='Box001'>
+          <pose>0 0.039620000000000002 0.46684999999999999 0.087266499999999997 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.51124899999999995 0.57835899999999996 0.108987</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box002'>
+          <pose>0 -0.20027800000000001 0.76638499999999998 -1.48353 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.51124899999999995 0.66511299999999995 0.108987</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder001'>
+          <pose>0 0 0.23957700000000001 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <length>0.39559100000000003</length>
+              <radius>0.0321281</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder002'>
+          <pose>0.40693400000000002 -0.124695 0.037183000000000001 1.5707999999999998
+            -1.3877787807814457e-17 -0.067165099999999991</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder003'>
+          <pose>0.243918 0.34860400000000002 0.037183000000000001 1.5708 0 1.17814</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder004'>
+          <pose>-0.25597700000000001 0.33987299999999998 0.037183000000000001 1.5708
+            5.5511151231257827e-17 2.4422899999999998</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder005'>
+          <pose>-0.40242 -0.13893 0.037183000000000001 1.5708 -1.1102230246251565e-16
+            -2.5741999999999998</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder006'>
+          <pose>0.0073951599999999996 -0.42568899999999998 0.037183000000000001 1.5708
+            2.2204460492503131e-16 1.8212999999999999</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box003'>
+          <pose>0 -0.208233 0.12911 0.069925299999999996 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box004'>
+          <pose>-0.19804099999999999 -0.064347500000000002 0.12911 0.069925299999999996 0 -1.25664</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box005'>
+          <pose>-0.122396 0.168464 0.12911 0.069925299999999996 0 -2.5132699999999999</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box006'>
+          <pose>0.122396 0.168464 0.12911 0.069925299999999996 0 2.5132699999999999</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box007'>
+          <pose>0.19804099999999999 -0.064347699999999994 0.12911 0.069925299999999996 0 1.25664</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box008'>
+          <pose>-0.275812 -0.0026205 0.74155499999999996 1.5708 0.13962600000000008 -1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.26451999999999998 0.043899199999999999 0.065929100000000004</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box009'>
+          <pose>-0.27317900000000001 -0.018006399999999999 0.59989199999999998 1.5708
+            0.13962600000000008 -1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.066130099999999997 0.28095500000000001 0.036920300000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box010'>
+          <pose>0.27596500000000002 -0.0026205199999999999 0.74155499999999996 1.5708
+            -0.13962600000000008 1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.26451999999999998 0.043899199999999999 0.065929100000000004</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box011'>
+          <pose>0.27345999999999998 -0.018006399999999999 0.59989199999999998 1.5708
+            -0.13962600000000008 1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.066130099999999997 0.28095500000000001 0.036920300000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
       <pose>-0.8518674582214194 -1.927891054512846 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/OfficeChair</uri>
-      <name>OfficeChair_2</name>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='OfficeChair_2'>
+      <static>true</static>
+      <link name='base_link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://OfficeChair/meshes/officechair.dae</uri>
+            </mesh>
+          </geometry>
+          <material>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>1 1 1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>model://OfficeChair/materials/textures/OfficeChair_Albedo.png</albedo_map>
+                <normal_map>model://OfficeChair/materials/textures/OfficeChair_Normal.png</normal_map>
+                <roughness_map>model://OfficeChair/materials/textures/OfficeChair_Roughness.png</roughness_map>
+                <metalness_map>model://OfficeChair/materials/textures/OfficeChair_Metalness.png</metalness_map>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <collision name='Box001'>
+          <pose>0 0.039620000000000002 0.46684999999999999 0.087266499999999997 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.51124899999999995 0.57835899999999996 0.108987</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box002'>
+          <pose>0 -0.20027800000000001 0.76638499999999998 -1.48353 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.51124899999999995 0.66511299999999995 0.108987</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder001'>
+          <pose>0 0 0.23957700000000001 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <length>0.39559100000000003</length>
+              <radius>0.0321281</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder002'>
+          <pose>0.40693400000000002 -0.124695 0.037183000000000001 1.5707999999999998
+            -1.3877787807814457e-17 -0.067165099999999991</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder003'>
+          <pose>0.243918 0.34860400000000002 0.037183000000000001 1.5708 0 1.17814</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder004'>
+          <pose>-0.25597700000000001 0.33987299999999998 0.037183000000000001 1.5708
+            5.5511151231257827e-17 2.4422899999999998</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder005'>
+          <pose>-0.40242 -0.13893 0.037183000000000001 1.5708 -1.1102230246251565e-16
+            -2.5741999999999998</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Cylinder006'>
+          <pose>0.0073951599999999996 -0.42568899999999998 0.037183000000000001 1.5708
+            2.2204460492503131e-16 1.8212999999999999</pose>
+          <geometry>
+            <cylinder>
+              <length>0.058403099999999999</length>
+              <radius>0.0379998</radius>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box003'>
+          <pose>0 -0.208233 0.12911 0.069925299999999996 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box004'>
+          <pose>-0.19804099999999999 -0.064347500000000002 0.12911 0.069925299999999996 0 -1.25664</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box005'>
+          <pose>-0.122396 0.168464 0.12911 0.069925299999999996 0 -2.5132699999999999</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box006'>
+          <pose>0.122396 0.168464 0.12911 0.069925299999999996 0 2.5132699999999999</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box007'>
+          <pose>0.19804099999999999 -0.064347699999999994 0.12911 0.069925299999999996 0 1.25664</pose>
+          <geometry>
+            <box>
+              <size>0.050442899999999999 0.404478 0.059060799999999997</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box008'>
+          <pose>-0.275812 -0.0026205 0.74155499999999996 1.5708 0.13962600000000008 -1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.26451999999999998 0.043899199999999999 0.065929100000000004</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box009'>
+          <pose>-0.27317900000000001 -0.018006399999999999 0.59989199999999998 1.5708
+            0.13962600000000008 -1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.066130099999999997 0.28095500000000001 0.036920300000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box010'>
+          <pose>0.27596500000000002 -0.0026205199999999999 0.74155499999999996 1.5708
+            -0.13962600000000008 1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.26451999999999998 0.043899199999999999 0.065929100000000004</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <collision name='Box011'>
+          <pose>0.27345999999999998 -0.018006399999999999 0.59989199999999998 1.5708
+            -0.13962600000000008 1.5708</pose>
+          <geometry>
+            <box>
+              <size>0.066130099999999997 0.28095500000000001 0.036920300000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
       <pose>-0.80356299877166748 0.54514998197555542 0 0 0 3.141588150025779</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Wallet</uri>
-      <name>Wallet</name>
-      <pose>-2.0432891705147611 -4.9533981795653155 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Red_Wallet</uri>
-      <name>RedWallet</name>
-      <pose>-2.0375580510511178 -5.2731862678729531 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Leather_Wallet_for_Men_Unfolded_02</uri>
-      <name>LeatherWalletForMenUnfolded02</name>
-      <pose>-2.4533200263977051 -5.3983268737792969 0.17309755086898804 -0.5305939794668777 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Wallet1</uri>
-      <name>Wallet1</name>
-      <pose>-2.4127891694222718 -5.5531415970226154 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Wallet2</uri>
-      <name>Wallet2</name>
-      <pose>-1.9800966573285359 -5.6504766199294671 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Brown_Leather_Wallet</uri>
-      <name>BrownLeatherWallet</name>
-      <pose>-2.5081601142883301 -4.9038600921630859 0.080615982413291931 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Old_wallet</uri>
-      <name>OldWallet</name>
-      <pose>-2.0657331193824091 -4.5692320484866311 0 0 0 0</pose>
-    </include>
-    <include>
-      <uri>file:///home/zeyadcode/.gz/sim/models/Ridge_wallet</uri>
-      <name>RidgeWallet</name>
-      <pose>-2.5185201168060303 -4.6053800582885742 0.10053373128175735 0 0 0</pose>
-    </include>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='RedWallet'>
+      <static>true</static>
+      <link name='link'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Red_Wallet/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.20000000000000001 0.10000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-2.037559986114502 -1.0386500358581543 0 0.78886408933392838 4.3929308468637642e-08
+        1.1619900031556363</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='LeatherWalletForMenUnfolded02'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+          <pose>0 0 0 0 0 0</pose>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://Leather_Wallet_for_Men_Unfolded_02/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.29999999999999999 0.20000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-2.4533200263977051 -3.938892126083374 0.15243752300739288 -0.53059397946687759 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='Wallet1'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+          <pose>0 0 0 0 0 0</pose>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Wallet1/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.20000000000000001 0.10000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-2.412790060043335 -2.2108399868011475 0 0.76395290658101633 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='Wallet2'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+          <pose>0 0 0 0 0 0</pose>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Wallet2/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.20000000000000001 0.10000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-0.028303405269980431 -3.0626199245452881 0 0 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='BrownLeatherWallet'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+          <pose>0 0 0 0 0 0</pose>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Brown_Leather_Wallet/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.20000000000000001 0.10000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-2.1662600040435791 0.57658898830413818 0.080615997314453125 0.67773087151493538
+        -0.36356287540055987 0.41600860662017436</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='OldWallet'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+          <pose>0 0 0 0 0 0</pose>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Old_wallet/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.20000000000000001 0.10000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-1.1641699075698853 -2.7022500038146973 0 0 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='RidgeWallet'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+          <pose>0 0 0 0 0 0</pose>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Ridge_wallet/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.20000000000000001 0.10000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+        <pose>0 0 0 0 0 0</pose>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>-1.5100500583648682 -4.6400399208068848 0.089834295213222504 0 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='RidgeWallet_1'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Ridge_wallet/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.20000000000000001 0.10000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+      </link>
+      <pose>-3.0485116407896773 -3.3380228635333231 0.089834302663803101 0 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='LeatherWalletForMenUnfolded02_1'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://Leather_Wallet_for_Men_Unfolded_02/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.29999999999999999 0.20000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+      </link>
+      <pose>0.12026124380416858 -4.5302427030687484 0.17309799790382385 -0.53059397946687759 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='LeatherWalletForMenUnfolded02_2'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://Leather_Wallet_for_Men_Unfolded_02/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.29999999999999999 0.20000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+      </link>
+      <pose>-1.2770791086506268 -0.71882919689295854 0.15243799984455109 -0.53059397946687759 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name='RidgeWallet_1_1'>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.10000000000000001</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <iyy>0.001</iyy>
+            <izz>0.001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://Ridge_wallet/meshes/model.glb</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.20000000000000001 0.10000000000000001 0.050000000000000003</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode />
+            </friction>
+            <bounce />
+            <contact />
+          </surface>
+        </collision>
+      </link>
+      <pose>0.90708657339598364 -1.0118197462685501 0.089834302663803101 0 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
     <light name='sun' type='directional'>
       <pose>0 0 10 0 0 0</pose>
       <cast_shadows>true</cast_shadows>
@@ -160,9 +1964,9 @@
       <specular>0.200000003 0.200000003 0.200000003 1</specular>
       <attenuation>
         <range>1000</range>
-        <linear>0.01</linear>
-        <constant>0.90000000000000002</constant>
-        <quadratic>0.001</quadratic>
+        <linear>0.0099999997764825821</linear>
+        <constant>0.89999997615814209</constant>
+        <quadratic>0.0010000000474974513</quadratic>
       </attenuation>
       <spot>
         <inner_angle>0</inner_angle>
