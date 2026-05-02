@@ -62,11 +62,16 @@ public:
     }
 
     hardware_interface::return_type write(const rclcpp::Time &, const rclcpp::Duration &) override {
-        float left_pct = static_cast<float>(hw_commands_[left_idx_]) / 9.42f;
-        float right_pct = static_cast<float>(hw_commands_[right_idx_]) / 9.42f;
+        float left_pct = static_cast<float>(hw_commands_[left_idx_]) / 100.0;
+        float right_pct = static_cast<float>(hw_commands_[right_idx_]) / 100.0;
 
         driver_->setLeftMotor(left_pct);
         driver_->setRightMotor(right_pct);
+
+	// RCLCPP_INFO(rclcpp::get_logger("MegaJawHardware"),
+        //    "write() called: left_vel=%.2f, right_vel=%.2f, left_pct=%.2f, right_pct=%.2f",
+        //    hw_commands_[left_idx_], hw_commands_[right_idx_], left_pct, right_pct);
+
         return hardware_interface::return_type::OK;
     }
 

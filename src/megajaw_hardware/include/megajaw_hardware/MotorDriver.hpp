@@ -11,10 +11,8 @@ public:
 	void setLeftMotor(float speedPerc);
 	void setRightMotor(float speedPerc);
 private:
-	int _rpA;
-	int _rpB;
-	int _lpA;
-	int _lpB;
+	int pi;
+	int _rpA, _rpB, _lpA, _lpB;
 
 	void setMotors(float speedPerc, int pina, int pinb);
 };

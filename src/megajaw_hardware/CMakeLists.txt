@@ -29,7 +29,8 @@ ament_target_dependencies(megajaw_hardware
   rclcpp
   rclcpp_lifecycle
 )
-target_link_libraries(megajaw_hardware pigpio pthread)
+
+target_link_libraries(megajaw_hardware pigpiod_if2 pthread)
 
 # Plugin export
 pluginlib_export_plugin_description_file(hardware_interface megajaw_hardware.xml)

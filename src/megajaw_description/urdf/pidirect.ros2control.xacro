@@ -5,8 +5,8 @@
             <plugin>megajaw_hardware/MegaJawHardware</plugin>
             <param name="left_wheel_pin_a">23</param>
             <param name="left_wheel_pin_b">24</param>
-            <param name="right_wheel_pin_a">17</param>
-            <param name="right_wheel_pin_b">18</param>
+            <param name="right_wheel_pin_a">23</param>
+            <param name="right_wheel_pin_b">24</param>
         </hardware>
         <joint name="left_wheel_base_joint">
             <command_interface name="velocity"/>
