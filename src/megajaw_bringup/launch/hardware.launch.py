@@ -58,10 +58,19 @@ def generate_launch_description():
         ],
         output='screen'
     )
+    
+    rosbridge = Node(
+        package='rosbridge_server',
+        executable='rosbridge_websocket',
+        name='rosbridge_websocket',
+        output='screen',
+        parameters=[{'port': 9090}]
+    )
 
     return LaunchDescription([
         robot_state_publisher,
         controller_manager,
         joint_state_broadcaster_spawner,
         diff_drive_spawner,
+        rosbridge,
     ])

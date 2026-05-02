@@ -126,6 +126,14 @@ def generate_launch_description():
         condition=IfCondition(enable_rviz),
         output='screen'
     )
+    
+    rosbridge = Node(
+        package='rosbridge_server',
+        executable='rosbridge_websocket',
+        name='rosbridge_websocket',
+        output='screen',
+        parameters=[{'port': 9090}]
+    )
 
     ld = LaunchDescription([
         # Launch gazebo environment
@@ -173,6 +181,7 @@ def generate_launch_description():
         rviz_node,
         gz_image_bridge_node,
         relay_camera_info_node,
+        rosbridge,
     ])
     ld.add_action(OpaqueFunction(function=robot_state_publisher_callback))
     
