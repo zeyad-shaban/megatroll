@@ -1,5 +1,6 @@
 // ---------- ROS2 setup ----------
-const ros = new ROSLIB.Ros({ url: 'ws://localhost:9090' });
+const URL = 'ws://zeyadcodepi.local:9090' // ws://localhost:9090
+const ros = new ROSLIB.Ros({ url: URL});
 const statusDiv = document.getElementById('statusMsg');
 const canvas = document.getElementById('joystickCanvas');
 const speedSlider = document.getElementById('speedScale');
@@ -11,7 +12,7 @@ function attemptReconnect() {
     if (!ros.isConnected && !reconnectInterval) {
         reconnectInterval = setInterval(() => {
             console.log('Attempting to reconnect to ROS2...');
-            ros.connect('ws://localhost:9090');
+            ros.connect(URL);
         }, RECONNECT_DELAY);
     }
 }
