@@ -1,7 +1,8 @@
 #!/usr/bin/env python3  
 import rclpy  
 from rclpy.node import Node  
-from geometry_msgs.msg import Twist, TwistStamped  
+# from geometry_msgs.msg import Twist, TwistStamped  
+from geometry_msgs.msg import TwistStamped
 import serial  
 import struct  
 import time  
@@ -33,13 +34,13 @@ class UARTBridgeNode(Node):
             self.get_logger().error(f'Failed to connect to UART: {e}')  
             self.ser = None  
           
-        # Subscribe to cmd_vel (support both Twist and TwistStamped)  
-        self.twist_sub = self.create_subscription(  
-            Twist,  
-            '/cmd_vel',  
-            self.twist_callback,  
-            10  
-        )  
+        # # Subscribe to cmd_vel (support both Twist and TwistStamped)  
+        # self.twist_sub = self.create_subscription(  
+        #     Twist,  
+        #     '/cmd_vel',  
+        #     self.twist_callback,  
+        #     10  
+        # )  
           
         self.twist_stamped_sub = self.create_subscription(  
             TwistStamped,  
@@ -53,8 +54,8 @@ class UARTBridgeNode(Node):
           
         self.get_logger().info('UART Bridge Node started')  
   
-    def twist_callback(self, msg):  
-        self.process_twist(msg)  
+    # def twist_callback(self, msg):  
+    #     self.process_twist(msg)  
   
     def twist_stamped_callback(self, msg):  
         self.process_twist(msg.twist)  
