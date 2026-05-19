@@ -9,6 +9,8 @@ const RECONNECT_MS = 2000;
 const ZERO_BURST_COUNT = 4;
 const DEAD_ZONE = 0.06;
 const EXPO = 1.7;
+const MIN_PWM_PERCENT = 30;
+const WHEEL_DEAD_ZONE = 0.02;
 
 const statusDiv = document.getElementById('statusMsg');
 const canvas = document.getElementById('joystickCanvas');
@@ -68,7 +70,18 @@ function previewWheelMix(linear, angular) {
     let left = linear - angular;
     let right = linear + angular;
     const maxMag = Math.max(1, Math.abs(left), Math.abs(right));
-    return { left: left / maxMag, right: right / maxMag };
+    return {
+        left: scaleWheelForDisplay(left / maxMag),
+        right: scaleWheelForDisplay(right / maxMag),
+    };
+}
+
+function scaleWheelForDisplay(value) {
+    const magnitude = Math.abs(value);
+    if (magnitude < WHEEL_DEAD_ZONE) return 0;
+
+    const pwm = MIN_PWM_PERCENT + magnitude * (100 - MIN_PWM_PERCENT);
+    return Math.sign(value) * pwm;
 }
 
 function setStatus(kind, text) {
@@ -128,8 +141,8 @@ function updateReadout(linear, angular) {
     const { left, right } = previewWheelMix(linear, angular);
     linearOut.textContent = linear.toFixed(2);
     angularOut.textContent = angular.toFixed(2);
-    leftOut.textContent = `${Math.round(left * 100)}%`;
-    rightOut.textContent = `${Math.round(right * 100)}%`;
+    leftOut.textContent = `${Math.round(left)}%`;
+    rightOut.textContent = `${Math.round(right)}%`;
 }
 
 function publishCurrentCommand() {

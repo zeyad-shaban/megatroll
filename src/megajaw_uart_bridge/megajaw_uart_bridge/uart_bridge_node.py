@@ -15,14 +15,19 @@ class UARTBridgeNode(Node):
         self.declare_parameter('serial_port', '/dev/ttyAMA0')
         self.declare_parameter('baudrate', 115200)
         self.declare_parameter('max_pwm', 100)
+        self.declare_parameter('min_pwm', 30)
         self.declare_parameter('cmd_timeout', 0.5)
         self.declare_parameter('dead_zone', 0.02)
 
         self.serial_port = self.get_parameter('serial_port').value
         self.baudrate = int(self.get_parameter('baudrate').value)
         self.max_pwm = int(self.get_parameter('max_pwm').value)
+        self.min_pwm = int(self.get_parameter('min_pwm').value)
         self.cmd_timeout = float(self.get_parameter('cmd_timeout').value)
         self.dead_zone = float(self.get_parameter('dead_zone').value)
+
+        self.max_pwm = int(self.clamp(self.max_pwm, 0, 100))
+        self.min_pwm = int(self.clamp(self.min_pwm, 0, self.max_pwm))
 
         self.last_cmd_time = time.monotonic()
         self.stopped = True
@@ -67,10 +72,20 @@ class UARTBridgeNode(Node):
         right = linear + angular
 
         max_magnitude = max(1.0, abs(left), abs(right))
-        left_pwm = round((left / max_magnitude) * self.max_pwm)
-        right_pwm = round((right / max_magnitude) * self.max_pwm)
+        left_pwm = self.scale_to_motor_pwm(left / max_magnitude)
+        right_pwm = self.scale_to_motor_pwm(right / max_magnitude)
 
-        return int(left_pwm), int(right_pwm)
+        return left_pwm, right_pwm
+
+    def scale_to_motor_pwm(self, value):
+        magnitude = abs(value)
+        if magnitude < self.dead_zone:
+            return 0
+
+        pwm_range = self.max_pwm - self.min_pwm
+        pwm = self.min_pwm + round(magnitude * pwm_range)
+        signed_pwm = self.clamp(pwm, self.min_pwm, self.max_pwm)
+        return int(signed_pwm * (1 if value > 0 else -1))
 
     @staticmethod
     def clamp(value, minimum, maximum):
