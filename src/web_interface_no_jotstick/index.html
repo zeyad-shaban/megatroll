@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Megajaw Drive Control</title>
+        <link rel="stylesheet" href="style.css" />
+        <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    </head>
+    <body>
+        <main class="shell">
+            <section class="drive-panel" aria-label="Drive control">
+                <header class="panel-header">
+                    <div>
+                        <p class="eyebrow">Megajaw</p>
+                        <h1>Drive control</h1>
+                    </div>
+                    <div class="status disconnected" id="statusMsg">Connecting...</div>
+                </header>
+
+                <section class="command-pad" id="commandPad" aria-label="Direction controls">
+                    <button class="drive-button forward" type="button" data-command="forward">
+                        <span>Forward</span>
+                    </button>
+                    <button class="drive-button left" type="button" data-command="left">
+                        <span>Left</span>
+                    </button>
+                    <button class="drive-button stop" type="button" id="stopButton">
+                        <span>Stop</span>
+                    </button>
+                    <button class="drive-button right" type="button" data-command="right">
+                        <span>Right</span>
+                    </button>
+                    <button class="drive-button backward" type="button" data-command="backward">
+                        <span>Backward</span>
+                    </button>
+                </section>
+
+                <section class="power-panel" aria-label="Power controls">
+                    <div class="control-row">
+                        <label for="powerScale">Power</label>
+                        <span id="powerValue">60%</span>
+                    </div>
+                    <input
+                        type="range"
+                        id="powerScale"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="60"
+                    />
+                </section>
+
+                <section class="wheel-panel" aria-label="Wheel controls">
+                    <div class="wheel-lane">
+                        <div class="control-row">
+                            <label for="leftWheel">Left wheel</label>
+                            <span id="leftSliderValue">0%</span>
+                        </div>
+                        <input
+                            type="range"
+                            id="leftWheel"
+                            min="-100"
+                            max="100"
+                            step="1"
+                            value="0"
+                        />
+                    </div>
+                    <div class="wheel-lane">
+                        <div class="control-row">
+                            <label for="rightWheel">Right wheel</label>
+                            <span id="rightSliderValue">0%</span>
+                        </div>
+                        <input
+                            type="range"
+                            id="rightWheel"
+                            min="-100"
+                            max="100"
+                            step="1"
+                            value="0"
+                        />
+                    </div>
+                </section>
+
+                <div class="telemetry" id="debugOutput">
+                    <div>
+                        <span>linear.x</span>
+                        <strong id="linearVal">0.00</strong>
+                    </div>
+                    <div>
+                        <span>angular.z</span>
+                        <strong id="angularVal">0.00</strong>
+                    </div>
+                    <div>
+                        <span>left pwm</span>
+                        <strong id="leftVal">0%</strong>
+                    </div>
+                    <div>
+                        <span>right pwm</span>
+                        <strong id="rightVal">0%</strong>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <script src="index.js"></script>
+    </body>
+</html>
