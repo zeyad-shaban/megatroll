@@ -132,7 +132,7 @@ function publishCmd(linear, angular) {
         header: { stamp: { sec: 0, nanosec: 0 }, frame_id: 'base_link' },
         twist: {
             linear: { x: linear, y: 0, z: 0 },
-            angular: { x: 0, y: 0, z: angular },
+            angular: { x: 0, y: 0, z: angular*2 },
         },
     }));
 }
