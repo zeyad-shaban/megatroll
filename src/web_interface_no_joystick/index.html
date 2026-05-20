@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Megajaw Drive Control</title>
+        <link rel="stylesheet" href="style.css" />
+        <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    </head>
+    <body>
+        <main class="shell">
+            <section class="drive-panel" aria-label="Drive control">
+                <header class="panel-header">
+                    <div>
+                        <p class="eyebrow">Megajaw</p>
+                        <h1>Drive control</h1>
+                    </div>
+                    <div class="status disconnected" id="statusMsg">Connecting...</div>
+                </header>
+
+                <div class="joystick-wrap">
+                    <canvas
+                        id="joystickCanvas"
+                        aria-label="Virtual joystick"
+                    ></canvas>
+                </div>
+
+                <div class="control-row">
+                    <label for="speedScale">Speed limit</label>
+                    <span id="speedValue">60%</span>
+                </div>
+                <input
+                    type="range"
+                    id="speedScale"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value="0.6"
+                />
+
+                <div class="telemetry" id="debugOutput">
+                    <div>
+                        <span>linear.x</span>
+                        <strong id="linearVal">0.00</strong>
+                    </div>
+                    <div>
+                        <span>angular.z</span>
+                        <strong id="angularVal">0.00</strong>
+                    </div>
+                    <div>
+                        <span>left wheel</span>
+                        <strong id="leftVal">0%</strong>
+                    </div>
+                    <div>
+                        <span>right wheel</span>
+                        <strong id="rightVal">0%</strong>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <script src="index.js"></script>
+    </body>
+</html>
