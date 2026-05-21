@@ -1,4 +1,4 @@
-#include "megajaw_hardware/MotorDriver.hpp"
+#include "megajaw_hardware/GripperDriver.hpp"
 #include <iostream>
 #include <fcntl.h>
 #include <termios.h>
@@ -7,31 +7,30 @@
 #include <cerrno>
 
 // Protocol constants matching STM32 firmware
-constexpr uint8_t HEADER1 = 0xAA;
-constexpr uint8_t HEADER2 = 0x55;
-constexpr int16_t MAX_PWM = 100;
+constexpr uint8_t GRIPPER_HEADER1 = 0xAB;
+constexpr uint8_t GRIPPER_HEADER2 = 0xCD;
+constexpr uint8_t GRIPPER_OPEN = 0x00;
+constexpr uint8_t GRIPPER_CLOSE = 0x01;
 
-MotorDriver::MotorDriver(const std::string &serial_port, int baudrate)
-    : serial_port_(serial_port), baudrate_(baudrate), serial_fd_(-1), left_speed_(0.0f), right_speed_(0.0f)
+GripperDriver::GripperDriver(const std::string &serial_port, int baudrate)
+    : serial_port_(serial_port), baudrate_(baudrate), serial_fd_(-1)
 {
-
     if (!openSerialPort())
     {
         std::cerr << "Failed to open serial port: " << serial_port << std::endl;
         return;
     }
 
-    std::cout << "MotorDriver initialized on " << serial_port << " at " << baudrate << " baud" << std::endl;
+    std::cout << "GripperDriver initialized on " << serial_port << " at " << baudrate << " baud" << std::endl;
 }
 
-MotorDriver::~MotorDriver()
+GripperDriver::~GripperDriver()
 {
-    std::cout << "Cleaning MotorDriver state..." << std::endl;
-    stopMotors();
+    std::cout << "Cleaning GripperDriver state..." << std::endl;
     closeSerialPort();
 }
 
-bool MotorDriver::openSerialPort()
+bool GripperDriver::openSerialPort()
 {
     serial_fd_ = open(serial_port_.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
     if (serial_fd_ == -1)
@@ -85,7 +84,7 @@ bool MotorDriver::openSerialPort()
     options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
     options.c_oflag &= ~OPOST;
 
-    // Set timeout: 100ms inter-character timeout, 0.1s total read timeout
+    // Set timeout
     options.c_cc[VMIN] = 0;
     options.c_cc[VTIME] = 1;
 
@@ -103,7 +102,7 @@ bool MotorDriver::openSerialPort()
     return true;
 }
 
-void MotorDriver::closeSerialPort()
+void GripperDriver::closeSerialPort()
 {
     if (serial_fd_ != -1)
     {
@@ -112,37 +111,19 @@ void MotorDriver::closeSerialPort()
     }
 }
 
-int16_t MotorDriver::scaleToPWM(float speedPerc)
-{
-    // Clamp input to [-1.0, 1.0]
-    if (speedPerc < -1.0f)
-    {
-        speedPerc = -1.0f;
-    }
-    else if (speedPerc > 1.0f)
-    {
-        speedPerc = 1.0f;
-    }
-
-    // Scale to [-100, 100] range
-    return static_cast<int16_t>(speedPerc * MAX_PWM);
-}
-
-void MotorDriver::sendToSTM32(int16_t left_pwm, int16_t right_pwm)
+void GripperDriver::sendGripperCommand(uint8_t cmd)
 {
     if (serial_fd_ == -1)
     {
+        std::cerr << "Serial port not open, cannot send gripper command" << std::endl;
         return;
     }
 
-    // Pack protocol: [0xAA][0x55][L_lo][L_hi][R_lo][R_hi]
-    uint8_t message[6];
-    message[0] = HEADER1;
-    message[1] = HEADER2;
-    message[2] = left_pwm & 0xFF;         // Low byte
-    message[3] = (left_pwm >> 8) & 0xFF;  // High byte
-    message[4] = right_pwm & 0xFF;        // Low byte
-    message[5] = (right_pwm >> 8) & 0xFF; // High byte
+    // Pack protocol: [0xAB][0xCD][cmd]
+    uint8_t message[3];
+    message[0] = GRIPPER_HEADER1;
+    message[1] = GRIPPER_HEADER2;
+    message[2] = cmd;
 
     ssize_t bytes_written = write(serial_fd_, message, sizeof(message));
     if (bytes_written != sizeof(message))
@@ -151,25 +132,14 @@ void MotorDriver::sendToSTM32(int16_t left_pwm, int16_t right_pwm)
     }
 }
 
-void MotorDriver::stopMotors()
+void GripperDriver::openGripper()
 {
-    left_speed_ = 0.0f;
-    right_speed_ = 0.0f;
-    sendToSTM32(0, 0);
+    std::cout << "Opening gripper..." << std::endl;
+    sendGripperCommand(GRIPPER_OPEN);
 }
 
-void MotorDriver::setLeftMotor(float speedPerc)
+void GripperDriver::closeGripper()
 {
-    left_speed_ = speedPerc;
-    int16_t left_pwm = scaleToPWM(left_speed_);
-    int16_t right_pwm = scaleToPWM(right_speed_);
-    sendToSTM32(left_pwm, right_pwm);
-}
-
-void MotorDriver::setRightMotor(float speedPerc)
-{
-    right_speed_ = speedPerc;
-    int16_t left_pwm = scaleToPWM(left_speed_);
-    int16_t right_pwm = scaleToPWM(right_speed_);
-    sendToSTM32(left_pwm, right_pwm);
+    std::cout << "Closing gripper..." << std::endl;
+    sendGripperCommand(GRIPPER_CLOSE);
 }

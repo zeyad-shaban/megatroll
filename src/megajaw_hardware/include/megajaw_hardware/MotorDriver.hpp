@@ -1,20 +1,29 @@
-#ifndef MOTOR_DRIVER_HPP
-#define MOTOR_DRIVER_HPP
-
-
-class MotorDriver {
-public:
-	MotorDriver(int rpA, int rpB, int lpA, int lpB);		
-	~MotorDriver();
-
-	void stopMotors();
-	void setLeftMotor(float speedPerc);
-	void setRightMotor(float speedPerc);
-private:
-	int pi;
-	int _rpA, _rpB, _lpA, _lpB;
-
-	void setMotors(float speedPerc, int pina, int pinb);
-};
-
+#ifndef MOTOR_DRIVER_HPP  
+#define MOTOR_DRIVER_HPP  
+  
+#include <string>  
+#include <cstdint>  
+  
+class MotorDriver {  
+public:  
+    MotorDriver(const std::string& serial_port, int baudrate);  
+    ~MotorDriver();  
+  
+    void stopMotors();  
+    void setLeftMotor(float speedPerc);  
+    void setRightMotor(float speedPerc);  
+  
+private:  
+    int serial_fd_;  
+    std::string serial_port_;  
+    int baudrate_;  
+    float left_speed_;  
+    float right_speed_;  
+      
+    bool openSerialPort();  
+    void closeSerialPort();  
+    void sendToSTM32(int16_t left_pwm, int16_t right_pwm);  
+    int16_t scaleToPWM(float speedPerc);  
+};  
+  
 #endif

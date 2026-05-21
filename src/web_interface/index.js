@@ -7,7 +7,7 @@ const canvas = document.getElementById('joystickCanvas');
 const speedSlider = document.getElementById('speedScale');
 
 let reconnectInterval = null;
-const RECONNECT_DELAY = 2000; // 2 seconds
+const RECONNECT_DELAY = 2000; // 2 seconds  
 
 function attemptReconnect() {
     if (!ros.isConnected && !reconnectInterval) {
@@ -55,7 +55,34 @@ const cmdVelPub = new ROSLIB.Topic({
     messageType: 'geometry_msgs/TwistStamped'
 });
 
-// ---------- Joystick parameters ----------
+// ---------- Gripper setup ----------  
+const cmdGripPub = new ROSLIB.Topic({
+    ros: ros,
+    name: '/cmd_grip',
+    messageType: 'std_msgs/String'
+});
+
+const gripperStatusDiv = document.getElementById('gripperStatus');
+const btnOpen = document.getElementById('btnOpen');
+const btnClose = document.getElementById('btnClose');
+
+btnOpen.addEventListener('click', () => {
+    if (!ros.isConnected) return;
+    const msg = new ROSLIB.Message({ data: 'OPEN' });
+    cmdGripPub.publish(msg);
+    gripperStatusDiv.textContent = 'OPEN';
+    gripperStatusDiv.className = 'gripper-status open';
+});
+
+btnClose.addEventListener('click', () => {
+    if (!ros.isConnected) return;
+    const msg = new ROSLIB.Message({ data: 'CLOSED' });
+    cmdGripPub.publish(msg);
+    gripperStatusDiv.textContent = 'CLOSED';
+    gripperStatusDiv.className = 'gripper-status closed';
+});
+
+// ---------- Joystick parameters ----------  
 const size = 250;
 const centerX = size / 2, centerY = size / 2;
 const maxRadius = 80;
@@ -64,7 +91,7 @@ let active = false;
 let joyX = 0, joyY = 0;
 let animationId = null;
 let coastingTimeout = null;
-const COAST_DURATION = 5000; // 5 seconds of coasting after release
+const COAST_DURATION = 5000; // 5 seconds of coasting after release  
 
 let speedScale = parseFloat(speedSlider.value);
 
@@ -74,10 +101,10 @@ speedSlider.addEventListener('input', (e) => {
 
 const ctx = canvas.getContext('2d');
 
-// ---------- Draw joystick (knob & base) ----------
+// ---------- Draw joystick (knob & base) ----------  
 function draw() {
     ctx.clearRect(0, 0, size, size);
-    // outer ring
+    // outer ring  
     ctx.beginPath();
     ctx.arc(centerX, centerY, maxRadius + 8, 0, 2 * Math.PI);
     ctx.fillStyle = '#1e2a32';
@@ -91,7 +118,7 @@ function draw() {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // crosshair lines
+    // crosshair lines  
     ctx.beginPath();
     ctx.moveTo(centerX - maxRadius, centerY);
     ctx.lineTo(centerX + maxRadius, centerY);
@@ -100,10 +127,10 @@ function draw() {
     ctx.strokeStyle = '#ffffff30';
     ctx.stroke();
 
-    // knob position
+    // knob position  
     let knobX = centerX + joyX * maxRadius;
     let knobY = centerY - joyY * maxRadius;
-    // limit to circle
+    // limit to circle  
     const dx = knobX - centerX, dy = knobY - centerY;
     const dist = Math.hypot(dx, dy);
     if (dist > maxRadius) {
@@ -122,7 +149,7 @@ function draw() {
     ctx.shadowBlur = 0;
 }
 
-// ---------- Convert mouse/touch position to joystick normalized values ----------
+// ---------- Convert mouse/touch position to joystick normalized values ----------  
 function getNormalizedCoords(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -149,7 +176,7 @@ function handleStart(e) {
     e.preventDefault();
     active = true;
 
-    // Cancel any coasting timeout
+    // Cancel any coasting timeout  
     if (coastingTimeout) {
         clearTimeout(coastingTimeout);
         coastingTimeout = null;
@@ -183,21 +210,21 @@ function handleEnd(e) {
         animationId = null;
     }
 
-    // Immediately reset joystick visual position to center
+    // Immediately reset joystick visual position to center  
     joyX = 0;
     joyY = 0;
     draw();
 
-    // Start coasting: send zero velocity for 5 seconds
+    // Start coasting: send zero velocity for 5 seconds  
     publishTwist(0, 0);
 
-    // After 5 seconds, fully stop (reset joystick)
+    // After 5 seconds, fully stop (reset joystick)  
     coastingTimeout = setTimeout(() => {
         coastingTimeout = null;
     }, COAST_DURATION);
 }
 
-// ---------- Publish Twist messages at ~30Hz while active ----------
+// ---------- Publish Twist messages at ~30Hz while active ----------  
 function startPublishing() {
     if (animationId) cancelAnimationFrame(animationId);
     function publishLoop() {
@@ -223,12 +250,12 @@ function publishTwist(linear, angular) {
     });
     cmdVelPub.publish(twist);
 
-    // Update debug output
+    // Update debug output  
     document.getElementById('linearVal').textContent = linear.toFixed(3);
     document.getElementById('angularVal').textContent = angular.toFixed(3);
 }
 
-// ---------- Attach events (mouse + touch) ----------
+// ---------- Attach events (mouse + touch) ----------  
 canvas.addEventListener('mousedown', handleStart);
 window.addEventListener('mousemove', handleMove);
 window.addEventListener('mouseup', handleEnd);
