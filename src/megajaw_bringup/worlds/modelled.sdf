@@ -110,7 +110,7 @@
         <collision name='box_collision'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <surface>
@@ -124,7 +124,7 @@
         <visual name='box_visual'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <material>
@@ -157,7 +157,7 @@
         <collision name='box_collision'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <surface>
@@ -171,7 +171,7 @@
         <visual name='box_visual'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <material>
@@ -204,7 +204,7 @@
         <collision name='box_collision'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <surface>
@@ -218,7 +218,7 @@
         <visual name='box_visual'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <material>
@@ -251,7 +251,7 @@
         <collision name='box_collision'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <surface>
@@ -265,7 +265,7 @@
         <visual name='box_visual'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <material>
@@ -298,7 +298,7 @@
         <collision name='box_collision'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <surface>
@@ -312,7 +312,7 @@
         <visual name='box_visual'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <material>
@@ -345,7 +345,7 @@
         <collision name='box_collision'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <surface>
@@ -359,7 +359,7 @@
         <visual name='box_visual'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <material>
@@ -392,7 +392,7 @@
         <collision name='box_collision'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <surface>
@@ -406,7 +406,7 @@
         <visual name='box_visual'>
           <geometry>
             <box>
-              <size>0.20000000000000001 0.20000000000000001 0.20000000000000001</size>
+              <size>0.064 0.064 0.25</size>
             </box>
           </geometry>
           <material>

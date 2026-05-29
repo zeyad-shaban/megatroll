@@ -13,6 +13,11 @@ from megajaw_interfaces.msg import TargetControl
 import math
 
 
+def get_depth_gz(width_px):
+    fox_x = constants.GZ_CAM_IMG_WIDTH / (2 * math.tan(constants.GZ_CAM_HFOV / 2))
+    return (constants.OBJ_WIDTH_METERS * fox_x) / (max(width_px, 1.0))
+
+
 class DetectorNode(Node):
     def __init__(self):
         super().__init__("detector_node")
@@ -20,22 +25,68 @@ class DetectorNode(Node):
 
         self.declare_parameter("is_sim", True)
         self.is_sim = self.get_parameter("is_sim").value
-        
+
         self.declare_parameter("debug", True)
         self.debug = self.get_parameter("debug").value
 
-        gz_fov_x = constants.GZ_CAM_IMG_WIDTH / (2 * math.tan(constants.GZ_CAM_HFOV / 2))
-        self.declare_parameter("fov_x", gz_fov_x)
-        self.fov_x: float = self.get_parameter("fov_x").value or 0
+        self.fx = 1497.70202
+        self.fy = 1435.16210
+        cx = 438.691766
+        cy = 918.565271
 
-        self.net = ncnn.Net()
-        
+        self.K = np.array(
+            [
+                [self.fx, 0.0, cx],
+                [0.0, self.fy, cy],
+                [0.0, 0.0, 1.0],
+            ],
+            dtype=np.float32,
+        )
+
+        self.dist = np.array(
+            [0.09600973, -1.13969576, 0.00809251, -0.01848817, 1.54268659],
+            dtype=np.float32,
+        )
+        self.yolo_img_sz = (
+            constants.YOLO_IMG_SZ_GZ if self.is_sim else constants.YOLO_IMG_SZ_REAL
+        )
+
+        self.net = ncnn.Net()  # type: ignore
+
         if self.is_sim:
-            self.net.load_param(os.path.join(get_package_share_directory("megajaw_brain"), "static", "best_ncnn_model_gz", "model.ncnn.param"))
-            self.net.load_model(os.path.join(get_package_share_directory("megajaw_brain"), "static", "best_ncnn_model_gz", "model.ncnn.bin"))
+            self.net.load_param(
+                os.path.join(
+                    get_package_share_directory("megajaw_brain"),
+                    "static",
+                    "best_ncnn_model_gz",
+                    "model.ncnn.param",
+                )
+            )
+            self.net.load_model(
+                os.path.join(
+                    get_package_share_directory("megajaw_brain"),
+                    "static",
+                    "best_ncnn_model_gz",
+                    "model.ncnn.bin",
+                )
+            )
         else:
-            self.net.load_param(os.path.join(get_package_share_directory("megajaw_brain"), "static", "best_ncnn_model_real", "model.ncnn.param"))
-            self.net.load_model(os.path.join(get_package_share_directory("megajaw_brain"), "static", "best_ncnn_model_real", "model.ncnn.bin"))
+            self.net.load_param(
+                os.path.join(
+                    get_package_share_directory("megajaw_brain"),
+                    "static",
+                    "best_ncnn_model_real",
+                    "model.ncnn.param",
+                )
+            )
+            self.net.load_model(
+                os.path.join(
+                    get_package_share_directory("megajaw_brain"),
+                    "static",
+                    "best_ncnn_model_real",
+                    "model.ncnn.bin",
+                )
+            )
 
         self.sub = self.create_subscription(
             CompressedImage,
@@ -48,6 +99,9 @@ class DetectorNode(Node):
 
     def image_callback(self, msg: CompressedImage):
         frame_bgr = imgmsg_to_cv2(msg)
+        if not self.is_sim:
+            frame_bgr = cv2.undistort(frame_bgr, self.K, self.dist)
+
         frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         h, w = frame_rgb.shape[:2]
 
@@ -56,8 +110,8 @@ class DetectorNode(Node):
             ncnn.Mat.PixelType.PIXEL_RGB,
             w,
             h,
-            constants.YOLO_IMG_SZ,
-            constants.YOLO_IMG_SZ,
+            self.yolo_img_sz,
+            self.yolo_img_sz,
         )
 
         mean_vals = (0.0, 0.0, 0.0)
@@ -75,25 +129,36 @@ class DetectorNode(Node):
 
         largest_box = extract_largest_box(out, conf_thresh=0.25)
 
-        msg = TargetControl()
-        msg.target_detected = largest_box is not None
+        ctrl_msg = TargetControl()
+        ctrl_msg.target_detected = largest_box is not None
 
         if largest_box is not None:
-            cx, cy = constants.YOLO_IMG_SZ // 2, constants.YOLO_IMG_SZ // 2
-            dx = -(largest_box["cx"] - cx) / (constants.YOLO_IMG_SZ // 2)
+            cx, cy = self.yolo_img_sz // 2, self.yolo_img_sz // 2
+            dx = -(largest_box["cx"] - cx) / (self.yolo_img_sz // 2)
 
-            msg.err_x = dx
-            msg.depth = (constants.OBJ_WIDTH_METERS * self.fov_x) / largest_box['w']
+            ctrl_msg.err_x = dx
+            bbox_w_px = float(largest_box["w"]) * (w / self.yolo_img_sz)
+            bbox_h_px = float(largest_box["h"]) * (h / self.yolo_img_sz)
 
-        self.publisher.publish(msg)
+            if self.is_sim:
+                ctrl_msg.depth = get_depth_gz(bbox_w_px)
+            else:
+                depth_w = (self.fx * constants.OBJ_WIDTH_METERS) / max(bbox_w_px, 1.0)
+                depth_h = (self.fy * constants.OBJ_HEIGHT_METERS) / max(bbox_h_px, 1.0)
+                self.get_logger().info(
+                    f"Depth Width: {depth_w}, DepthHeight: {depth_h}"
+                )
+                ctrl_msg.depth = (depth_w + depth_h) / 2
+
+        self.publisher.publish(ctrl_msg)
 
         if self.debug:
             preview_frame = draw_detections(frame_bgr, out, conf_thresh=0.25)
 
             if largest_box is not None:
                 frame_h, frame_w = preview_frame.shape[:2]
-                x_scale = frame_w / constants.YOLO_IMG_SZ
-                y_scale = frame_h / constants.YOLO_IMG_SZ
+                x_scale = frame_w / self.yolo_img_sz
+                y_scale = frame_h / self.yolo_img_sz
 
                 real_cx = int(largest_box["cx"] * x_scale)
                 real_cy = int(largest_box["cy"] * y_scale)
