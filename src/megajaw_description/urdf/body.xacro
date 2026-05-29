@@ -202,7 +202,7 @@
         <parent link="gripper_base_link" />
         <child link="gripper_ef1_link" />
         <axis xyz="0 0 1" />
-        <limit lower="0" upper="${pi / 2}" effort="100" velocity="1" />
+        <limit lower="0" upper="0.7" effort="1000" velocity="1" />
     </joint>
 
     <link name="gripper_ef2_link">
@@ -233,7 +233,7 @@
         <parent link="gripper_base_link" />
         <child link="gripper_ef2_link" />
         <axis xyz="0 0 1" />
-        <limit lower="-${pi / 2}" upper="0" effort="100" velocity="1" />
+        <limit lower="-0.7" upper="0" effort="1000" velocity="1" />
     </joint>
 
 

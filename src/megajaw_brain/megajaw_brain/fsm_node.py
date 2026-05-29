@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from megajaw_brain.utils import clip_num
 from megajaw_interfaces.msg import TargetControl
-from std_msgs.msg import String
+from std_msgs.msg import Float64MultiArray
 from geometry_msgs.msg import TwistStamped
 import enum
 
@@ -33,7 +33,7 @@ class ToTargetControllerNode(Node):
 
         self.state = STATES["IDLE"]
 
-        self.gripper_pub = self.create_publisher(String, "/cmd_grip", 10)
+        self.gripper_pub = self.create_publisher(Float64MultiArray, "/gripper_controller/commands", 10)
         self.cmd_vel_pub = self.create_publisher(TwistStamped, "/cmd_vel", 10)
 
         self.create_subscription(TargetControl, "/target_state", self.on_target_state, 10)
@@ -56,8 +56,8 @@ class ToTargetControllerNode(Node):
     # Main States
     def idle(self):
         # Open Gripper
-        msg = String()
-        msg.data = "OPEN"
+        msg = Float64MultiArray()
+        msg.data = [0.6, -0.6]
         self.gripper_pub.publish(msg)
 
         # Is there visible confirmed tar(msg.err_x, msg.err_y)get?
@@ -85,9 +85,9 @@ class ToTargetControllerNode(Node):
             self.state = STATES.GRIPPER_CLOSE
 
     def gripper_close(self):
-        gripper_msg = String()
-        gripper_msg.data = "CLOSED"
-        self.gripper_pub.publish(gripper_msg)
+        msg = Float64MultiArray()
+        msg.data = [0.0, 0.0]
+        self.gripper_pub.publish(msg)
 
         cmd_msg = TwistStamped()
         cmd_msg.twist.linear.x = 0.0

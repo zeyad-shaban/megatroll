@@ -1,7 +1,9 @@
 // ---------- ROS2 setup ----------
-// const URL = 'ws://zeyadcodepi.local:9090' // ws://localhost:9090
-const URL = 'ws://localhost:9090'
-const ros = new ROSLIB.Ros({ url: URL});
+const URL_REAL = 'ws://zeyadcodepi.local:9090'
+const URL_GZ = 'ws://localhost:9090'
+let last_try_gz = false
+
+const ros = new ROSLIB.Ros({ url: URL_GZ });
 const statusDiv = document.getElementById('statusMsg');
 const canvas = document.getElementById('joystickCanvas');
 const speedSlider = document.getElementById('speedScale');
@@ -16,8 +18,11 @@ const RECONNECT_DELAY = 2000; // 2 seconds
 function attemptReconnect() {
     if (!ros.isConnected && !reconnectInterval) {
         reconnectInterval = setInterval(() => {
-            console.log('Attempting to reconnect to ROS2...');
-            ros.connect(URL);
+            if (last_try_gz)
+                ros.connect(URL_GZ);
+            else
+                ros.connect(URL_REAL)
+            last_try_gz = !last_try_gz;
         }, RECONNECT_DELAY);
     }
 }
@@ -60,7 +65,7 @@ const cameraTopic = new ROSLIB.Topic({
     messageType: 'sensor_msgs/msg/CompressedImage'
 });
 
-cameraTopic.subscribe(function(message) {
+cameraTopic.subscribe(function (message) {
     const imgSrc = 'data:image/jpeg;base64,' + message.data;
     cameraImg.src = imgSrc;
     cameraStatusDiv.textContent = '📹 LIVE';
@@ -91,8 +96,8 @@ const cmdVelPub = new ROSLIB.Topic({
 // ---------- Gripper setup ----------  
 const cmdGripPub = new ROSLIB.Topic({
     ros: ros,
-    name: '/cmd_grip',
-    messageType: 'std_msgs/String'
+    name: '/gripper_controller/commands',
+    messageType: 'std_msgs/msg/Float64MultiArray'
 });
 
 const gripperStatusDiv = document.getElementById('gripperStatus');
@@ -101,7 +106,7 @@ const btnClose = document.getElementById('btnClose');
 
 btnOpen.addEventListener('click', () => {
     if (!ros.isConnected) return;
-    const msg = new ROSLIB.Message({ data: 'OPEN' });
+    const msg = new ROSLIB.Message({ data: [1.0, -1.0] });
     cmdGripPub.publish(msg);
     gripperStatusDiv.textContent = 'OPEN';
     gripperStatusDiv.className = 'gripper-status open';
@@ -109,7 +114,7 @@ btnOpen.addEventListener('click', () => {
 
 btnClose.addEventListener('click', () => {
     if (!ros.isConnected) return;
-    const msg = new ROSLIB.Message({ data: 'CLOSED' });
+    const msg = new ROSLIB.Message({ data: [0.0, 0.0] });
     cmdGripPub.publish(msg);
     gripperStatusDiv.textContent = 'CLOSED';
     gripperStatusDiv.className = 'gripper-status closed';

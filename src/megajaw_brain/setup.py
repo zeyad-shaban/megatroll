@@ -11,7 +11,8 @@ setup(
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
-        (os.path.join("share", package_name, "static", "best_ncnn_model"), glob("static/best_ncnn_model/*")),
+        (os.path.join("share", package_name, "static", "best_ncnn_model_gz"), glob("static/best_ncnn_model_gz/*")),
+        (os.path.join("share", package_name, "static", "best_ncnn_model_real"), glob("static/best_ncnn_model_real/*")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,

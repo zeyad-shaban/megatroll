@@ -66,6 +66,4 @@
         <mu2>0.01</mu2>
         <material>Gazebo/Gray</material>
     </gazebo>
-
-
 </robot>

@@ -1,5 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 #include "megajaw_hardware/GripperDriver.hpp"
 
 class GripperControlNode : public rclcpp::Node
@@ -19,29 +19,25 @@ public:
         gripper_driver_ = std::make_unique<GripperDriver>(serial_port, baudrate);
 
         // Subscribe to /cmd_grip
-        grip_sub_ = this->create_subscription<std_msgs::msg::String>(
-            "/cmd_grip", 10,
+        grip_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
+            "/gripper_controller/commands", 10,
             std::bind(&GripperControlNode::gripCallback, this, std::placeholders::_1));
 
         RCLCPP_INFO(this->get_logger(), "Gripper control node started, listening on /cmd_grip");
     }
 
 private:
-    void gripCallback(const std_msgs::msg::String::SharedPtr msg)
+    void gripCallback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
     {
-        if (msg->data == "OPEN")
+        if (msg->data.size() >= 2 && msg->data[0] != 0.0)
         {
-            RCLCPP_INFO(this->get_logger(), "Received OPEN command");
+            RCLCPP_INFO(this->get_logger(), "Received OPEN command via Float64MultiArray");
             gripper_driver_->openGripper();
-        }
-        else if (msg->data == "CLOSED")
-        {
-            RCLCPP_INFO(this->get_logger(), "Received CLOSED command");
-            gripper_driver_->closeGripper();
         }
         else
         {
-            RCLCPP_WARN(this->get_logger(), "Unknown gripper command: '%s' (expected 'OPEN' or 'CLOSED')", msg->data.c_str());
+            RCLCPP_INFO(this->get_logger(), "Received CLOSED command via Float64MultiArray");
+            gripper_driver_->closeGripper();
         }
     }
 

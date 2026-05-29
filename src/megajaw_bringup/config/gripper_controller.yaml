@@ -9,3 +9,12 @@ gripper_controller:
     joints:
       - gripper_ef1_base_joint
       - gripper_ef2_base_joint
+    command_interfaces: ["position"]
+    state_interfaces: ["position"]
+    allow_stalling: true
+    publish_rate: 20
+    qos:
+      commands:
+        reliability: reliable
+        durability: volatile
+    
