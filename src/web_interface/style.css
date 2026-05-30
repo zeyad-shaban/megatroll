@@ -272,10 +272,32 @@ body::before {
 /* Responsive */
 @media (max-width: 480px) {
 
-    .joystick-panel,
+.joystick-panel,
     .gripper-panel {
         padding: 24px;
         border-radius: 16px;
+    }
+
+    .camera-panel {
+        background: rgba(20, 25, 40, 0.9);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        text-align: center;
+        margin-top: 20px;
+    }
+    .camera-panel .title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: #fff;
+        letter-spacing: 0.5px;
+    }
+    .camera-panel .status {
+        margin-top: 8px;
+        font-size: 14px;
     }
 
     .title {

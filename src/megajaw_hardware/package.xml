@@ -13,6 +13,9 @@
   <depend>pluginlib</depend>  
   <depend>rclcpp</depend>  
   <depend>rclcpp_lifecycle</depend>  
+  <depend>sensor_msgs</depend>
+  <build_depend>opencv</build_depend>
+  <exec_depend>opencv</exec_depend>
   <depend>std_msgs</depend>  
   
   <test_depend>ament_lint_auto</test_depend>  

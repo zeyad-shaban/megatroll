@@ -1,0 +1,19 @@
+description: Ultralytics YOLO26n model trained on ..\dataset\GzRedBoxes.v1i.yolo26\data.yaml
+author: Ultralytics
+date: '2026-05-20T17:20:20.184960'
+version: 8.4.41
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 256
+- 256
+names:
+  0: target
+args:
+  batch: 1
+  half: true
+channels: 3
+end2end: false
