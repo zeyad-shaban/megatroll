@@ -98,7 +98,12 @@ def generate_launch_description():
                 name="camera_driver_node",
                 output="screen",
                 parameters=[
-                    {"camera_urls": ["http://192.168.1.11:8080/video", "http://10.152.247.225:8080/video"]},
+                    {
+                        "camera_urls": [
+                            "http://192.168.1.11:8080/video",
+                            "http://10.152.247.225:8080/video",
+                        ]
+                    },
                     {"use_sim_time": False},
                 ],
                 respawn=True,
@@ -110,7 +115,12 @@ def generate_launch_description():
                 executable="detector_node",
                 name="detector_node",
                 output="screen",
-                parameters=[{"debug": False}, {"is_sim": False}, {"use_sim_time": False}],
+                parameters=[
+                    {"conf_thresh": 0.7},
+                    {"debug": True},
+                    {"is_sim": False},
+                    {"use_sim_time": False},
+                ],
             ),
             rosbridge,
             gripper_control,

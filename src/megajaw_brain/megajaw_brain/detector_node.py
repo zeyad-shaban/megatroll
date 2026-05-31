@@ -23,6 +23,9 @@ class DetectorNode(Node):
         super().__init__("detector_node")
         self.get_logger().info(f"detector_node Started")
 
+        self.declare_parameter("conf_thresh", 0.5)
+        self.conf_thresh = self.get_parameter("conf_thresh").value
+        
         self.declare_parameter("is_sim", True)
         self.is_sim = self.get_parameter("is_sim").value
 
@@ -102,6 +105,7 @@ class DetectorNode(Node):
         if not self.is_sim:
             frame_bgr = cv2.undistort(frame_bgr, self.K, self.dist)
 
+        frame_bgr = cv2.rotate(frame_bgr, cv2.ROTATE_90_CLOCKWISE)
         frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         h, w = frame_rgb.shape[:2]
 
@@ -127,7 +131,7 @@ class DetectorNode(Node):
         if ret == -1:
             self.get_logger().error("Failed to extract output from the model ret = -1")
 
-        largest_box = extract_largest_box(out, conf_thresh=0.25)
+        largest_box, largest_box_raw = extract_largest_box(out, conf_thresh=self.conf_thresh)
 
         ctrl_msg = TargetControl()
         ctrl_msg.target_detected = largest_box is not None
@@ -137,8 +141,8 @@ class DetectorNode(Node):
             dx = -(largest_box["cx"] - cx) / (self.yolo_img_sz // 2)
 
             ctrl_msg.err_x = dx
-            bbox_w_px = float(largest_box["w"]) * (w / self.yolo_img_sz)
-            bbox_h_px = float(largest_box["h"]) * (h / self.yolo_img_sz)
+            bbox_w_px = float(largest_box["w"]) * (w / self.yolo_img_sz) * 2.2
+            bbox_h_px = float(largest_box["h"]) * (h / self.yolo_img_sz) * 3.3
 
             if self.is_sim:
                 ctrl_msg.depth = get_depth_gz(bbox_w_px)
@@ -146,14 +150,15 @@ class DetectorNode(Node):
                 depth_w = (self.fx * constants.OBJ_WIDTH_METERS) / max(bbox_w_px, 1.0)
                 depth_h = (self.fy * constants.OBJ_HEIGHT_METERS) / max(bbox_h_px, 1.0)
                 self.get_logger().info(
-                    f"Depth Width: {depth_w}, DepthHeight: {depth_h}"
+                    f"Depth Width: {depth_w}, DepthHeight: {depth_h}, bbox_w_px: {bbox_w_px}, bbox_h_px: {bbox_h_px}"
                 )
                 ctrl_msg.depth = (depth_w + depth_h) / 2
 
         self.publisher.publish(ctrl_msg)
 
         if self.debug:
-            preview_frame = draw_detections(frame_bgr, out, conf_thresh=0.25)
+            detected_out = np.reshape(largest_box_raw, (5,1)) if largest_box_raw is not None else np.empty((5,0))
+            preview_frame = draw_detections(frame_bgr, self.yolo_img_sz, detected_out, conf_thresh=self.conf_thresh)
 
             if largest_box is not None:
                 frame_h, frame_w = preview_frame.shape[:2]
