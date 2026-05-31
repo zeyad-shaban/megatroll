@@ -1,224 +1,400 @@
 // ---------- ROS2 setup ----------
-const URL_REAL = 'ws://zeyadcodepi.local:9090'
-const URL_GZ = 'ws://localhost:9090'
-let last_try_gz = false
+const URL_REAL = "ws://zeyadcodepi.local:9090";
+const URL_GZ = "ws://localhost:9090";
 
-const ros = new ROSLIB.Ros({ url: URL_GZ });
-const statusDiv = document.getElementById('statusMsg');
-const canvas = document.getElementById('joystickCanvas');
-const speedSlider = document.getElementById('speedScale');
-const cameraImg = document.getElementById('cameraImage');
-const cameraStatusDiv = document.getElementById('cameraStatus');
+const ENDPOINTS = {
+    gz: { label: "GZ", url: URL_GZ },
+    real: { label: "Real", url: URL_REAL },
+};
+
+const ros = new ROSLIB.Ros();
+const RECONNECT_DELAY = 2000;
+const AUTO_ENDPOINT_ORDER = ["gz", "real"];
+
+let connectionMode = "auto";
+let activeEndpoint = null;
+let connectedEndpoint = null;
+let reconnectTimer = null;
+let autoEndpointIndex = 0;
+
+const statusDiv = document.getElementById("statusMsg");
+const connectedEndpointLabel = document.getElementById("connectedEndpointLabel");
+const modeButtons = [...document.querySelectorAll(".mode-btn")];
+const canvas = document.getElementById("joystickCanvas");
+const speedSlider = document.getElementById("speedScale");
+const speedScaleValue = document.getElementById("speedScaleValue");
+const cameraImg = document.getElementById("cameraImage");
+const cameraPlaceholder = document.getElementById("cameraPlaceholder");
+const cameraStatusDiv = document.getElementById("cameraStatus");
+const fpsVal = document.getElementById("fpsVal");
+const autoEnabledToggle = document.getElementById("autoEnabledToggle");
+const autoStateText = document.getElementById("autoStateText");
+const joystickLockBadge = document.getElementById("joystickLockBadge");
+const eventLog = document.getElementById("eventLog");
+
 let lastFrameTime = null;
 let fps = 0;
+let autoEnabled = false;
 
-let reconnectInterval = null;
-const RECONNECT_DELAY = 2000; // 2 seconds  
+function addEventLog(message) {
+    const row = document.createElement("div");
+    row.textContent = `${new Date().toLocaleTimeString()}  ${message}`;
+    eventLog.prepend(row);
 
-function attemptReconnect() {
-    if (!ros.isConnected && !reconnectInterval) {
-        reconnectInterval = setInterval(() => {
-            if (last_try_gz)
-                ros.connect(URL_GZ);
-            else
-                ros.connect(URL_REAL)
-            last_try_gz = !last_try_gz;
-        }, RECONNECT_DELAY);
+    while (eventLog.children.length > 8) {
+        eventLog.removeChild(eventLog.lastChild);
     }
 }
 
-function stopReconnectAttempts() {
-    if (reconnectInterval) {
-        clearInterval(reconnectInterval);
-        reconnectInterval = null;
+function setStatus(text, kind = "warn") {
+    statusDiv.textContent = text;
+    statusDiv.className = `status-pill status-${kind}`;
+}
+
+function updateConnectionUi() {
+    modeButtons.forEach((button) => {
+        const mode = button.dataset.mode;
+        button.classList.toggle("is-selected", mode === connectionMode);
+        button.classList.toggle("is-connected", mode === connectedEndpoint);
+    });
+
+    if (connectedEndpoint) {
+        connectedEndpointLabel.textContent = `${ENDPOINTS[connectedEndpoint].label} connected`;
+        connectedEndpointLabel.className =
+            "rounded-full bg-emerald-500 px-2 py-1 text-xs font-semibold text-emerald-950";
+    } else if (activeEndpoint) {
+        connectedEndpointLabel.textContent = `Trying ${ENDPOINTS[activeEndpoint].label}`;
+        connectedEndpointLabel.className =
+            "rounded-full bg-amber-500/15 px-2 py-1 text-xs font-semibold text-amber-200";
+    } else {
+        connectedEndpointLabel.textContent = "Offline";
+        connectedEndpointLabel.className =
+            "rounded-full bg-zinc-800 px-2 py-1 text-xs font-semibold text-zinc-400";
     }
 }
 
-ros.on('connection', () => {
-    stopReconnectAttempts();
-    statusDiv.innerHTML = '✅ ROS2 connected – joystick active';
-    statusDiv.classList.remove('error', 'disconnected');
-    canvas.style.opacity = '1';
-    canvas.style.pointerEvents = 'auto';
+function getNextEndpoint() {
+    if (connectionMode === "gz" || connectionMode === "real") {
+        return connectionMode;
+    }
+
+    const endpoint = AUTO_ENDPOINT_ORDER[autoEndpointIndex % AUTO_ENDPOINT_ORDER.length];
+    autoEndpointIndex += 1;
+    return endpoint;
+}
+
+function clearReconnectTimer() {
+    if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+    }
+}
+
+function scheduleReconnect() {
+    if (reconnectTimer || ros.isConnected) return;
+
+    reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        connectToSelectedMode();
+    }, RECONNECT_DELAY);
+}
+
+function connectToSelectedMode() {
+    clearReconnectTimer();
+    activeEndpoint = getNextEndpoint();
+    updateConnectionUi();
+    setStatus(`Connecting to ${ENDPOINTS[activeEndpoint].label}`, "warn");
+
+    try {
+        ros.connect(ENDPOINTS[activeEndpoint].url);
+    } catch (error) {
+        addEventLog(`Connect failed: ${error.message || error}`);
+        scheduleReconnect();
+    }
+}
+
+function changeConnectionMode(nextMode) {
+    if (connectionMode === nextMode && (ros.isConnected || reconnectTimer)) return;
+
+    connectionMode = nextMode;
+    autoEndpointIndex = 0;
+    clearReconnectTimer();
+    connectedEndpoint = null;
+    activeEndpoint = null;
+    updateConnectionUi();
+    addEventLog(`Connection mode set to ${nextMode.toUpperCase()}`);
+
+    if (ros.isConnected) {
+        ros.close();
+    } else {
+        connectToSelectedMode();
+    }
+}
+
+modeButtons.forEach((button) => {
+    button.addEventListener("click", () => changeConnectionMode(button.dataset.mode));
 });
 
-ros.on('error', (err) => {
-    statusDiv.innerHTML = `❌ Error: ${err}`;
-    statusDiv.classList.add('error');
-    canvas.style.opacity = '0.5';
-    canvas.style.pointerEvents = 'none';
-    attemptReconnect();
+ros.on("connection", () => {
+    clearReconnectTimer();
+    connectedEndpoint = activeEndpoint;
+    setStatus(`ROS2 connected via ${ENDPOINTS[connectedEndpoint].label}`, "ok");
+    addEventLog(`Connected to ${ENDPOINTS[connectedEndpoint].label}`);
+    updateConnectionUi();
+    publishAutoEnabled(autoEnabled);
+    updateManualControlsState();
+    cameraStatusDiv.textContent = "Waiting for camera frames";
 });
 
-ros.on('close', () => {
-    statusDiv.innerHTML = '⚠️ Disconnected – reconnecting...';
-    statusDiv.classList.add('disconnected');
-    canvas.style.opacity = '0.5';
-    canvas.style.pointerEvents = 'none';
-    attemptReconnect();
+ros.on("error", (err) => {
+    const endpointLabel = activeEndpoint ? ENDPOINTS[activeEndpoint].label : "ROS2";
+    connectedEndpoint = null;
+    stopJoystick({ sendStop: false });
+    setStatus(`${endpointLabel} unavailable`, "error");
+    cameraStatusDiv.textContent = "Camera unavailable";
+    addEventLog(`Connection error on ${endpointLabel}`);
+    updateConnectionUi();
+    updateManualControlsState();
+    scheduleReconnect();
+});
+
+ros.on("close", () => {
+    connectedEndpoint = null;
+    stopJoystick({ sendStop: false });
+    setStatus("Disconnected, reconnecting", "warn");
+    cameraStatusDiv.textContent = "Camera disconnected";
+    updateConnectionUi();
+    updateManualControlsState();
+    scheduleReconnect();
+});
+
+// ---------- Topics ----------
+const cmdVelPub = new ROSLIB.Topic({
+    ros,
+    name: "/cmd_vel",
+    messageType: "geometry_msgs/msg/TwistStamped",
+});
+
+const cmdGripPub = new ROSLIB.Topic({
+    ros,
+    name: "/gripper_controller/commands",
+    messageType: "std_msgs/msg/Float64MultiArray",
+});
+
+const autoEnabledPub = new ROSLIB.Topic({
+    ros,
+    name: "/auto_enabled",
+    messageType: "std_msgs/msg/Bool",
+});
+
+const cameraTopic = new ROSLIB.Topic({
+    ros,
+    name: "/camera/image/compressed",
+    messageType: "sensor_msgs/msg/CompressedImage",
+});
+
+const targetStateTopic = new ROSLIB.Topic({
+    ros,
+    name: "/target_state",
+    messageType: "megajaw_interfaces/msg/TargetControl",
 });
 
 // ---------- Camera feed subscription ----------
-const cameraTopic = new ROSLIB.Topic({
-    ros: ros,
-    name: '/camera/image/compressed',
-    messageType: 'sensor_msgs/msg/CompressedImage'
-});
+cameraTopic.subscribe((message) => {
+    cameraImg.src = `data:image/jpeg;base64,${message.data}`;
+    cameraPlaceholder.classList.add("hidden");
+    cameraStatusDiv.textContent = "Live";
 
-cameraTopic.subscribe(function (message) {
-    const imgSrc = 'data:image/jpeg;base64,' + message.data;
-    cameraImg.src = imgSrc;
-    cameraStatusDiv.textContent = '📹 LIVE';
     const now = Date.now();
     if (lastFrameTime) {
         const dt = (now - lastFrameTime) / 1000;
         fps = 1 / dt;
+        fpsVal.textContent = fps.toFixed(1);
     }
     lastFrameTime = now;
 });
 
-ros.on('error', (err) => {
-    // Update camera status on error
-    cameraStatusDiv.textContent = '⚠️ Camera error';
-});
+// ---------- Gripper setup ----------
+const gripperStatusDiv = document.getElementById("gripperStatus");
+const btnOpen = document.getElementById("btnOpen");
+const btnClose = document.getElementById("btnClose");
 
-ros.on('connection', () => {
-    // Reset camera status on reconnect
-    cameraStatusDiv.textContent = 'Connecting to camera...';
-});
+function setGripperStatus(text, className) {
+    gripperStatusDiv.textContent = text;
+    gripperStatusDiv.className = className;
+}
 
-const cmdVelPub = new ROSLIB.Topic({
-    ros: ros,
-    name: '/cmd_vel',
-    messageType: 'geometry_msgs/TwistStamped'
-});
+btnOpen.addEventListener("click", () => {
+    if (!ros.isConnected || autoEnabled) return;
 
-// ---------- Gripper setup ----------  
-const cmdGripPub = new ROSLIB.Topic({
-    ros: ros,
-    name: '/gripper_controller/commands',
-    messageType: 'std_msgs/msg/Float64MultiArray'
-});
-
-const gripperStatusDiv = document.getElementById('gripperStatus');
-const btnOpen = document.getElementById('btnOpen');
-const btnClose = document.getElementById('btnClose');
-
-btnOpen.addEventListener('click', () => {
-    if (!ros.isConnected) return;
     const msg = new ROSLIB.Message({ data: [1.0, -1.0] });
     cmdGripPub.publish(msg);
-    gripperStatusDiv.textContent = 'OPEN';
-    gripperStatusDiv.className = 'gripper-status open';
+    setGripperStatus(
+        "Open",
+        "rounded-full bg-emerald-500/15 px-2 py-1 text-xs font-semibold text-emerald-300",
+    );
+    addEventLog("Gripper open command sent");
 });
 
-btnClose.addEventListener('click', () => {
-    if (!ros.isConnected) return;
+btnClose.addEventListener("click", () => {
+    if (!ros.isConnected || autoEnabled) return;
+
     const msg = new ROSLIB.Message({ data: [0.0, 0.0] });
     cmdGripPub.publish(msg);
-    gripperStatusDiv.textContent = 'CLOSED';
-    gripperStatusDiv.className = 'gripper-status closed';
+    setGripperStatus(
+        "Closed",
+        "rounded-full bg-rose-500/15 px-2 py-1 text-xs font-semibold text-rose-300",
+    );
+    addEventLog("Gripper close command sent");
 });
 
-// ---------- Joystick parameters ----------  
+// ---------- Joystick parameters ----------
 const size = 250;
-const centerX = size / 2, centerY = size / 2;
+const centerX = size / 2;
+const centerY = size / 2;
 const maxRadius = 80;
 
 let active = false;
-let joyX = 0, joyY = 0;
+let joyX = 0;
+let joyY = 0;
 let animationId = null;
-let coastingTimeout = null;
-const COAST_DURATION = 5000; // 5 seconds of coasting after release  
-
 let speedScale = parseFloat(speedSlider.value);
 
-speedSlider.addEventListener('input', (e) => {
+speedSlider.addEventListener("input", (e) => {
     speedScale = parseFloat(e.target.value);
+    speedScaleValue.textContent = Math.round(speedScale * 100);
 });
 
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext("2d");
 
-// ---------- Draw joystick (knob & base) ----------  
 function draw() {
     ctx.clearRect(0, 0, size, size);
-    // outer ring  
+
+    const gradient = ctx.createRadialGradient(centerX, centerY, 22, centerX, centerY, maxRadius + 20);
+    gradient.addColorStop(0, "#27272a");
+    gradient.addColorStop(1, "#09090b");
+
     ctx.beginPath();
-    ctx.arc(centerX, centerY, maxRadius + 8, 0, 2 * Math.PI);
-    ctx.fillStyle = '#1e2a32';
+    ctx.arc(centerX, centerY, maxRadius + 14, 0, 2 * Math.PI);
+    ctx.fillStyle = gradient;
     ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, maxRadius, 0, 2 * Math.PI);
-    ctx.fillStyle = '#3a4c5c';
-    ctx.fill();
-    ctx.strokeStyle = '#5d7a8c';
+    ctx.strokeStyle = "rgba(255,255,255,0.10)";
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // crosshair lines  
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, maxRadius, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(34,211,238,0.55)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
     ctx.beginPath();
     ctx.moveTo(centerX - maxRadius, centerY);
     ctx.lineTo(centerX + maxRadius, centerY);
     ctx.moveTo(centerX, centerY - maxRadius);
     ctx.lineTo(centerX, centerY + maxRadius);
-    ctx.strokeStyle = '#ffffff30';
+    ctx.strokeStyle = "rgba(255,255,255,0.16)";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    // knob position  
     let knobX = centerX + joyX * maxRadius;
     let knobY = centerY - joyY * maxRadius;
-    // limit to circle  
-    const dx = knobX - centerX, dy = knobY - centerY;
+    const dx = knobX - centerX;
+    const dy = knobY - centerY;
     const dist = Math.hypot(dx, dy);
+
     if (dist > maxRadius) {
         knobX = centerX + (dx / dist) * maxRadius;
         knobY = centerY + (dy / dist) * maxRadius;
     }
+
     ctx.beginPath();
     ctx.arc(knobX, knobY, 28, 0, 2 * Math.PI);
-    ctx.fillStyle = '#e67e22';
+    ctx.fillStyle = "#22d3ee";
     ctx.fill();
-    ctx.shadowBlur = 3;
+    ctx.strokeStyle = "rgba(255,255,255,0.72)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
     ctx.beginPath();
-    ctx.arc(knobX, knobY, 22, 0, 2 * Math.PI);
-    ctx.fillStyle = '#f39c12';
+    ctx.arc(knobX - 8, knobY - 8, 6, 0, 2 * Math.PI);
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
     ctx.fill();
-    ctx.shadowBlur = 0;
 }
 
-// ---------- Convert mouse/touch position to joystick normalized values ----------  
 function getNormalizedCoords(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     let canvasX = (clientX - rect.left) * scaleX;
     let canvasY = (clientY - rect.top) * scaleY;
+
     canvasX = Math.min(Math.max(canvasX, 0), size);
     canvasY = Math.min(Math.max(canvasY, 0), size);
+
     let dx = canvasX - centerX;
     let dy = canvasY - centerY;
     const dist = Math.hypot(dx, dy);
+
     if (dist > maxRadius) {
         dx = (dx / dist) * maxRadius;
         dy = (dy / dist) * maxRadius;
     }
-    let normX = dx / maxRadius;
-    let normY = dy / maxRadius;
-    normY = -normY;
-    return { x: normX, y: normY };
+
+    return {
+        x: dx / maxRadius,
+        y: -dy / maxRadius,
+    };
+}
+
+function canUseManualControls() {
+    return ros.isConnected && !autoEnabled;
+}
+
+function stopJoystick({ sendStop = true } = {}) {
+    active = false;
+
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+
+    joyX = 0;
+    joyY = 0;
+    draw();
+
+    if (sendStop) {
+        publishTwist(0, 0, { force: true });
+    }
+}
+
+function updateManualControlsState() {
+    const locked = !canUseManualControls();
+    canvas.classList.toggle("is-locked", locked);
+    speedSlider.disabled = locked;
+    btnOpen.disabled = locked;
+    btnClose.disabled = locked;
+
+    if (autoEnabled) {
+        joystickLockBadge.textContent = "Auto lock";
+        joystickLockBadge.className =
+            "rounded-full bg-emerald-500/15 px-2 py-1 text-xs font-semibold text-emerald-300";
+    } else if (!ros.isConnected) {
+        joystickLockBadge.textContent = "Offline";
+        joystickLockBadge.className =
+            "rounded-full bg-zinc-800 px-2 py-1 text-xs font-semibold text-zinc-400";
+    } else {
+        joystickLockBadge.textContent = "Manual";
+        joystickLockBadge.className =
+            "rounded-full bg-cyan-500/15 px-2 py-1 text-xs font-semibold text-cyan-300";
+    }
 }
 
 function handleStart(e) {
-    if (!ros.isConnected) return;
+    if (!canUseManualControls()) return;
+
     e.preventDefault();
     active = true;
-
-    // Cancel any coasting timeout  
-    if (coastingTimeout) {
-        clearTimeout(coastingTimeout);
-        coastingTimeout = null;
-    }
 
     const point = e.touches ? e.touches[0] : e;
     const { x, y } = getNormalizedCoords(point.clientX, point.clientY);
@@ -229,7 +405,8 @@ function handleStart(e) {
 }
 
 function handleMove(e) {
-    if (!active) return;
+    if (!active || !canUseManualControls()) return;
+
     e.preventDefault();
     const point = e.touches ? e.touches[0] : e;
     const { x, y } = getNormalizedCoords(point.clientX, point.clientY);
@@ -240,85 +417,90 @@ function handleMove(e) {
 
 function handleEnd(e) {
     if (!active) return;
+
     e.preventDefault();
-    active = false;
-
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
-
-    // Immediately reset joystick visual position to center  
-    joyX = 0;
-    joyY = 0;
-    draw();
-
-    // Start coasting: send zero velocity for 5 seconds  
-    publishTwist(0, 0);
-
-    // After 5 seconds, fully stop (reset joystick)  
-    coastingTimeout = setTimeout(() => {
-        coastingTimeout = null;
-    }, COAST_DURATION);
+    stopJoystick();
 }
 
-// ---------- Publish Twist messages at ~30Hz while active ----------  
 function startPublishing() {
     if (animationId) cancelAnimationFrame(animationId);
+
     function publishLoop() {
-        if (active) {
-            let linear = joyY * speedScale;
-            let angular = joyX * speedScale * -Math.sign(linear);
+        if (active && canUseManualControls()) {
+            const linear = joyY * speedScale;
+            const angular = joyX * speedScale * -Math.sign(linear || 1);
             publishTwist(linear, angular);
             animationId = requestAnimationFrame(publishLoop);
         } else {
             animationId = null;
         }
     }
+
     publishLoop();
 }
 
-function publishTwist(linear, angular) {
-    if (!ros.isConnected) return;
+function publishTwist(linear, angular, options = {}) {
+    if (!ros.isConnected || (autoEnabled && !options.force)) return;
+
     const twist = new ROSLIB.Message({
         twist: {
             linear: { x: linear, y: 0, z: 0 },
             angular: { x: 0, y: 0, z: angular },
-        }
+        },
     });
-    cmdVelPub.publish(twist);
 
-    // Update debug output  
-    document.getElementById('linearVal').textContent = linear.toFixed(3);
-    document.getElementById('angularVal').textContent = angular.toFixed(3);
+    cmdVelPub.publish(twist);
+    document.getElementById("linearVal").textContent = linear.toFixed(3);
+    document.getElementById("angularVal").textContent = angular.toFixed(3);
 }
 
-// ---------- Target State Listener --------------
-const targetStateTopic = new ROSLIB.Topic({
-    ros: ros,
-    name: '/target_state',
-    messageType: 'megajaw_interfaces/msg/TargetControl'
-})
-
+// ---------- Target State Listener ----------
 targetStateTopic.subscribe((msg) => {
     if (msg.target_detected) {
-        document.getElementById('targetErrX').textContent = msg.err_x.toFixed(3);
-        document.getElementById('targetDepth').textContent = msg.depth.toFixed(3);
+        document.getElementById("targetErrX").textContent = msg.err_x.toFixed(3);
+        document.getElementById("targetDepth").textContent = msg.depth.toFixed(3);
     } else {
-        document.getElementById('targetErrX').textContent = "NA";
-        document.getElementById('targetDepth').textContent = "NA";
+        document.getElementById("targetErrX").textContent = "NA";
+        document.getElementById("targetDepth").textContent = "NA";
     }
 });
 
-// ---------- Autonomous Mode --------------
+// ---------- Autonomous Mode ----------
+function publishAutoEnabled(enabled) {
+    if (!ros.isConnected) return;
 
-// ---------- Attach events (mouse + touch) ----------  
-canvas.addEventListener('mousedown', handleStart);
-window.addEventListener('mousemove', handleMove);
-window.addEventListener('mouseup', handleEnd);
+    autoEnabledPub.publish(new ROSLIB.Message({ data: enabled }));
+    addEventLog(`/auto_enabled => ${enabled ? "True" : "False"}`);
+}
 
-canvas.addEventListener('touchstart', handleStart, { passive: false });
-window.addEventListener('touchmove', handleMove, { passive: false });
-window.addEventListener('touchend', handleEnd);
+function setAutoEnabled(enabled) {
+    autoEnabled = enabled;
+    autoEnabledToggle.checked = enabled;
+    autoStateText.textContent = enabled ? "Autonomous drive" : "Manual control";
+    autoStateText.className = enabled
+        ? "text-sm font-semibold text-emerald-300"
+        : "text-sm font-semibold text-zinc-300";
+
+    stopJoystick({ sendStop: enabled });
+    updateManualControlsState();
+    publishAutoEnabled(enabled);
+}
+
+autoEnabledToggle.addEventListener("change", (event) => {
+    setAutoEnabled(event.target.checked);
+});
+
+// ---------- Attach events (mouse + touch) ----------
+canvas.addEventListener("mousedown", handleStart);
+window.addEventListener("mousemove", handleMove);
+window.addEventListener("mouseup", handleEnd);
+
+canvas.addEventListener("touchstart", handleStart, { passive: false });
+window.addEventListener("touchmove", handleMove, { passive: false });
+window.addEventListener("touchend", handleEnd, { passive: false });
+window.addEventListener("touchcancel", handleEnd, { passive: false });
 
 draw();
+updateConnectionUi();
+updateManualControlsState();
+connectToSelectedMode();

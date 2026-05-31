@@ -118,7 +118,7 @@ def generate_launch_description():
                 parameters=[
                     {"max_lost_frames": 30},  # note: phone cam runs at 30fps
                     {"conf_thresh": 0.7},
-                    {"debug": True},
+                    {"debug": False},
                     {"is_sim": False},
                     {"use_sim_time": False},
                 ],

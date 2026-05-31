@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from megajaw_brain.utils import clip_num
 from megajaw_interfaces.msg import TargetControl
-from std_msgs.msg import Float64MultiArray
+from std_msgs.msg import Float64MultiArray, Bool
 from geometry_msgs.msg import TwistStamped
 import enum
 import time
@@ -47,14 +47,21 @@ class ToTargetControllerNode(Node):
         self.create_subscription(
             TargetControl, "/target_state", self.on_target_state, 10
         )
-        self.create_timer(0.1, self.main_loop)
+        self.create_subscription(Bool, "/auto_enabled", self.on_auto_enabled, 10)
+        self.create_timer(1 / 30, self.main_loop)
 
         self.target_ctrl: TargetControl | None = None
+        self.auto_enabled = False
 
         self.state_enter_time: None | float = None
         self.forward_duration = 0.0
 
     def main_loop(self):
+        if not self.auto_enabled:
+            self.state = STATES.IDLE
+            self.state_enter_time = None
+            return
+
         if self.state == STATES.IDLE:
             self.idle()
         elif self.state == STATES.TO_TARGET:
@@ -158,6 +165,9 @@ class ToTargetControllerNode(Node):
     # Utility
     def on_target_state(self, msg: TargetControl):
         self.target_ctrl = msg
+
+    def on_auto_enabled(self, msg: Bool):
+        self.auto_enabled = msg.data
 
 
 def main(args=None):
