@@ -27,11 +27,15 @@ class ToTargetControllerNode(Node):
         self.declare_parameter("close_thresh", 0.04)
         self.close_thresh = self.get_parameter("close_thresh").value
 
-        self.W_MAX = 0.7
-        self.KW = self.W_MAX
+        self.declare_parameter("W_MAX", 0.7)
+        self.declare_parameter("KW", 0.7)
+        self.declare_parameter("V_MAX", 0.6)
+        self.declare_parameter("KV", 1.3)
 
-        self.V_MAX = 0.6
-        self.KV = 1.3
+        self.W_MAX = self.get_parameter("W_MAX").value
+        self.KW = self.get_parameter("KW").value
+        self.V_MAX = self.get_parameter("V_MAX").value
+        self.KV = self.get_parameter("KV").value
 
         self.state = STATES["IDLE"]
 

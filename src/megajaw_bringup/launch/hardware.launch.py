@@ -129,6 +129,10 @@ def generate_launch_description():
                 output="screen",
                 parameters=[
                     {
+                        "W_MAX": 0.7,
+                        "KW": 0.7,
+                        "V_MAX": 0.6,
+                        "KV": 1.3,
                         "close_thresh": 0.05,
                         "use_sim_time": False,
                     }
