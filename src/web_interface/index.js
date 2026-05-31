@@ -293,6 +293,25 @@ function publishTwist(linear, angular) {
     document.getElementById('angularVal').textContent = angular.toFixed(3);
 }
 
+// ---------- Target State Listener --------------
+const targetStateTopic = new ROSLIB.Topic({
+    ros: ros,
+    name: '/target_state',
+    messageType: 'megajaw_interfaces/msg/TargetControl'
+})
+
+targetStateTopic.subscribe((msg) => {
+    if (msg.target_detected) {
+        document.getElementById('targetErrX').textContent = msg.err_x.toFixed(3);
+        document.getElementById('targetDepth').textContent = msg.depth.toFixed(3);
+    } else {
+        document.getElementById('targetErrX').textContent = "NA";
+        document.getElementById('targetDepth').textContent = "NA";
+    }
+});
+
+// ---------- Autonomous Mode --------------
+
 // ---------- Attach events (mouse + touch) ----------  
 canvas.addEventListener('mousedown', handleStart);
 window.addEventListener('mousemove', handleMove);
