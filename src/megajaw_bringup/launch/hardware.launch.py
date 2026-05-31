@@ -116,11 +116,22 @@ def generate_launch_description():
                 name="detector_node",
                 output="screen",
                 parameters=[
-                    {"max_lost_frames": 30}, # note: phone cam runs at 30fps
+                    {"max_lost_frames": 30},  # note: phone cam runs at 30fps
                     {"conf_thresh": 0.7},
                     {"debug": True},
                     {"is_sim": False},
                     {"use_sim_time": False},
+                ],
+            ),
+            Node(
+                package="megajaw_brain",
+                executable="fsm_node",
+                output="screen",
+                parameters=[
+                    {
+                        "close_thresh": 0.05,
+                        "use_sim_time": False,
+                    }
                 ],
             ),
             rosbridge,

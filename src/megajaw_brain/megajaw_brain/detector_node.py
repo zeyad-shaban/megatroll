@@ -22,7 +22,7 @@ def get_depth_gz(width_px):
 class DetectorNode(Node):
     def __init__(self):
         super().__init__("detector_node")
-        self.get_logger().info(f"detector_node Started")
+        self.get_logger().info("detector_node Started")
 
         self.declare_parameter("conf_thresh", 0.5)
         self.conf_thresh = self.get_parameter("conf_thresh").value
@@ -96,8 +96,8 @@ class DetectorNode(Node):
         frame_bgr = imgmsg_to_cv2(msg)
         if not self.is_sim:
             frame_bgr = cv2.undistort(frame_bgr, self.K, self.dist)
+            frame_bgr = cv2.rotate(frame_bgr, cv2.ROTATE_90_CLOCKWISE)
 
-        frame_bgr = cv2.rotate(frame_bgr, cv2.ROTATE_90_CLOCKWISE)
         h, w = frame_bgr.shape[:2]
 
         results = self.model.track(

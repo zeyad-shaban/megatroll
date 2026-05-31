@@ -194,7 +194,10 @@ def generate_launch_description():
         name="fsm_node",
         output="screen",
         parameters=[
-            {"is_autonomous": True},
+            {
+                "close_thresh": 0.05,
+                "use_sim_time": True,
+            },
         ],
     )
 
@@ -204,7 +207,7 @@ def generate_launch_description():
         name="detector_node",
         output="screen",
         parameters=[
-            {"debug": debug_mode},
+            {"debug": True},
         ],
     )
 
@@ -265,7 +268,7 @@ def generate_launch_description():
             gz_image_bridge_node,
             relay_camera_info_node,
             rosbridge,
-            # fsm_node,
+            fsm_node,
             detector_node,
         ]
     )
