@@ -18,36 +18,6 @@ def imgmsg_to_cv2(msg):
         
     return cv_image
     
-def draw_detections(frame_bgr, yolo_img_sz, out_arr: np.ndarray, conf_thresh=0.25):
-    original_h, original_w = frame_bgr.shape[:2]
-    debug_frame = frame_bgr.copy()
-
-    valid_cols = out_arr[:, out_arr[4, :] >= conf_thresh]
-    valid_cols = valid_cols.T 
-
-    for row in valid_cols:
-        # Index 4 onwards contains the class confidences
-        class_scores = row[4:]
-        class_id = np.argmax(class_scores)
-        score = class_scores[class_id]
-
-        if score >= conf_thresh:
-            cx, cy, nw, nh = row[0], row[1], row[2], row[3]
-            
-            x1 = int((cx - nw / 2) * (original_w / yolo_img_sz))
-            y1 = int((cy - nh / 2) * (original_h / yolo_img_sz))
-            x2 = int((cx + nw / 2) * (original_w / yolo_img_sz))
-            y2 = int((cy + nh / 2) * (original_h / yolo_img_sz))
-
-            cv2.rectangle(debug_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(debug_frame, f"ID {class_id}: {score:.2f}", (x1, y1 - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                        
-        
-            
-    return debug_frame
-
-
 def extract_largest_box(out_arr: np.ndarray, conf_thresh=0.25) -> tuple[dict, np.ndarray]:
     valid_cols = out_arr[:, out_arr[4, :] >= conf_thresh]
     if valid_cols.shape[1] == 0:

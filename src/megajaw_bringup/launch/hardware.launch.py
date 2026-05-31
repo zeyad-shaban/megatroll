@@ -116,6 +116,7 @@ def generate_launch_description():
                 name="detector_node",
                 output="screen",
                 parameters=[
+                    {"max_lost_frames": 30}, # note: phone cam runs at 30fps
                     {"conf_thresh": 0.7},
                     {"debug": True},
                     {"is_sim": False},

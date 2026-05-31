@@ -7,9 +7,10 @@ from ament_index_python.packages import get_package_share_directory
 import cv2
 from sensor_msgs.msg import CompressedImage
 import os
-from megajaw_brain.utils import imgmsg_to_cv2, draw_detections, extract_largest_box
+from megajaw_brain.utils import imgmsg_to_cv2, extract_largest_box
 from megajaw_brain import constants
 from megajaw_interfaces.msg import TargetControl
+from ultralytics import YOLO
 import math
 
 
@@ -25,7 +26,7 @@ class DetectorNode(Node):
 
         self.declare_parameter("conf_thresh", 0.5)
         self.conf_thresh = self.get_parameter("conf_thresh").value
-        
+
         self.declare_parameter("is_sim", True)
         self.is_sim = self.get_parameter("is_sim").value
 
@@ -57,38 +58,22 @@ class DetectorNode(Node):
         self.net = ncnn.Net()  # type: ignore
 
         if self.is_sim:
-            self.net.load_param(
+            self.model = YOLO(
                 os.path.join(
                     get_package_share_directory("megajaw_brain"),
                     "static",
                     "best_ncnn_model_gz",
-                    "model.ncnn.param",
-                )
-            )
-            self.net.load_model(
-                os.path.join(
-                    get_package_share_directory("megajaw_brain"),
-                    "static",
-                    "best_ncnn_model_gz",
-                    "model.ncnn.bin",
-                )
+                ),
+                task="detect",
             )
         else:
-            self.net.load_param(
+            self.model = YOLO(
                 os.path.join(
                     get_package_share_directory("megajaw_brain"),
                     "static",
                     "best_ncnn_model_real",
-                    "model.ncnn.param",
-                )
-            )
-            self.net.load_model(
-                os.path.join(
-                    get_package_share_directory("megajaw_brain"),
-                    "static",
-                    "best_ncnn_model_real",
-                    "model.ncnn.bin",
-                )
+                ),
+                task="detect",
             )
 
         self.sub = self.create_subscription(
@@ -100,75 +85,115 @@ class DetectorNode(Node):
 
         self.publisher = self.create_publisher(TargetControl, "/target_state", 10)
 
+        # Persistent Target Lock Fields
+        self.locked_track_id = None
+        self.lost_frame_counter = 0
+
+        self.declare_parameter("max_lost_frames", 30)
+        self.max_lost_frames = self.get_parameter("max_lost_frames").value
+
     def image_callback(self, msg: CompressedImage):
         frame_bgr = imgmsg_to_cv2(msg)
         if not self.is_sim:
             frame_bgr = cv2.undistort(frame_bgr, self.K, self.dist)
 
         frame_bgr = cv2.rotate(frame_bgr, cv2.ROTATE_90_CLOCKWISE)
-        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
-        h, w = frame_rgb.shape[:2]
+        h, w = frame_bgr.shape[:2]
 
-        mat = ncnn.Mat.from_pixels_resize(
-            frame_rgb,
-            ncnn.Mat.PixelType.PIXEL_RGB,
-            w,
-            h,
-            self.yolo_img_sz,
-            self.yolo_img_sz,
-        )
+        results = self.model.track(
+            frame_bgr, persist=True, conf=self.conf_thresh, verbose=False
+        )[0]
 
-        mean_vals = (0.0, 0.0, 0.0)
-        norm_vals = (1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0)
-        mat.substract_mean_normalize(mean_vals, norm_vals)
+        boxes = results.boxes
+        best_box_xywh = None
 
-        ex = self.net.create_extractor()
-        ex.input("in0", mat)
+        if boxes is not None and boxes.id is not None and len(boxes) > 0:
+            ids = boxes.id.cpu().numpy().astype(int).tolist()
+            xywh_list = boxes.xywh.cpu().numpy()
+            confs = boxes.conf.cpu().numpy()
 
-        ret, out = ex.extract("out0")
-        out = np.array(out)  # 5 (cx, cy, nw, nh, class_score) x n_anchors
+            # --- Condition A: Locked target is actively present ---
+            if self.locked_track_id is not None and self.locked_track_id in ids:
+                idx = ids.index(self.locked_track_id)
+                best_box_xywh = xywh_list[idx]
+                self.lost_frame_counter = 0
 
-        if ret == -1:
-            self.get_logger().error("Failed to extract output from the model ret = -1")
+            # --- Condition B: Locked target missing (grace buffer) ---
+            elif self.locked_track_id is not None and self.locked_track_id not in ids:
+                self.lost_frame_counter += 1
+                if self.lost_frame_counter > self.max_lost_frames:
+                    self.get_logger().warn(
+                        f"[TargetLock] Lock DROPPED on ID {self.locked_track_id} "
+                        f"after {self.lost_frame_counter} lost frames. Re-acquiring..."
+                    )
+                    self.locked_track_id = None
+                    self.lost_frame_counter = 0
+                else:
+                    self.get_logger().info(
+                        f"[TargetLock] ID {self.locked_track_id} missing "
+                        f"({self.lost_frame_counter}/{self.max_lost_frames})"
+                    )
+                # best_box_xywh stays None while in grace buffer
 
-        largest_box, largest_box_raw = extract_largest_box(out, conf_thresh=self.conf_thresh)
+            # --- Condition C: No active lock — acquire best target ---
+            if self.locked_track_id is None:
+                best_score = -1.0
+                best_idx = -1
+                for i in range(len(ids)):
+                    bw, bh = float(xywh_list[i][2]), float(xywh_list[i][3])
+                    score = bw * bh * float(confs[i])
+                    if score > best_score:
+                        best_score = score
+                        best_idx = i
+                if best_idx >= 0:
+                    self.locked_track_id = ids[best_idx]
+                    best_box_xywh = xywh_list[best_idx]
+                    self.lost_frame_counter = 0
+                    self.get_logger().info(
+                        f"[TargetLock] LOCKED onto ID {self.locked_track_id} "
+                        f"(score={best_score:.1f})"
+                    )
+        else:
+            # No detections at all — apply grace buffer logic if locked
+            if self.locked_track_id is not None:
+                self.lost_frame_counter += 1
+                if self.lost_frame_counter > self.max_lost_frames:
+                    self.get_logger().warn(
+                        f"[TargetLock] Lock DROPPED on ID {self.locked_track_id} "
+                        f"(no detections for {self.lost_frame_counter} frames)"
+                    )
+                    self.locked_track_id = None
+                    self.lost_frame_counter = 0
 
         ctrl_msg = TargetControl()
-        ctrl_msg.target_detected = largest_box is not None
+        ctrl_msg.target_detected = best_box_xywh is not None
 
-        if largest_box is not None:
-            cx, cy = self.yolo_img_sz // 2, self.yolo_img_sz // 2
-            dx = -(largest_box["cx"] - cx) / (self.yolo_img_sz // 2)
-
+        if best_box_xywh is not None:
+            orig_h, orig_w = results.orig_shape
+            cx_center, _ = orig_w / 2, orig_h / 2
+            dx = float(-(best_box_xywh[0] - cx_center) / cx_center)
             ctrl_msg.err_x = dx
-            bbox_w_px = float(largest_box["w"]) * (w / self.yolo_img_sz) * 2.2
-            bbox_h_px = float(largest_box["h"]) * (h / self.yolo_img_sz) * 3.3
+            bbox_w_px = float(best_box_xywh[2]) * 2.2
+            bbox_h_px = float(best_box_xywh[3]) * 3.3
 
             if self.is_sim:
                 ctrl_msg.depth = get_depth_gz(bbox_w_px)
             else:
                 depth_w = (self.fx * constants.OBJ_WIDTH_METERS) / max(bbox_w_px, 1.0)
                 depth_h = (self.fy * constants.OBJ_HEIGHT_METERS) / max(bbox_h_px, 1.0)
-                self.get_logger().info(
-                    f"Depth Width: {depth_w}, DepthHeight: {depth_h}, bbox_w_px: {bbox_w_px}, bbox_h_px: {bbox_h_px}"
-                )
-                ctrl_msg.depth = (depth_w + depth_h) / 2
+                ctrl_msg.depth = (depth_w + depth_h) / 2.0
+
+                # self.get_logger().info(f"Depth Width: {depth_w}, DepthHeight: {depth_h}, bbox_w_px: {bbox_w_px}, bbox_h_px: {bbox_h_px}")
 
         self.publisher.publish(ctrl_msg)
 
         if self.debug:
-            detected_out = np.reshape(largest_box_raw, (5,1)) if largest_box_raw is not None else np.empty((5,0))
-            preview_frame = draw_detections(frame_bgr, self.yolo_img_sz, detected_out, conf_thresh=self.conf_thresh)
+            preview_frame = results.plot()
 
-            if largest_box is not None:
-                frame_h, frame_w = preview_frame.shape[:2]
-                x_scale = frame_w / self.yolo_img_sz
-                y_scale = frame_h / self.yolo_img_sz
-
-                real_cx = int(largest_box["cx"] * x_scale)
-                real_cy = int(largest_box["cy"] * y_scale)
-
-                cv2.circle(preview_frame, (real_cx, real_cy), 9, (0, 0, 255), 2)
+            if best_box_xywh is not None:
+                real_cx = int(best_box_xywh[0])
+                real_cy = int(best_box_xywh[1])
+                cv2.circle(preview_frame, (real_cx, real_cy), 9, (0, 0, 255), -1)
 
             cv2.imshow("Debug View", preview_frame)
             cv2.waitKey(1)
