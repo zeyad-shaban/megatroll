@@ -18,41 +18,10 @@ def imgmsg_to_cv2(msg):
         
     return cv_image
     
-def draw_detections(frame_bgr, out_arr: np.ndarray, conf_thresh=0.25):
-
-    debug_frame = frame_bgr.copy()
-    h, w = frame_bgr.shape[:2]
-
-    valid_cols = out_arr[:, out_arr[4, :] >= conf_thresh]
-    valid_cols = valid_cols.T 
-
-    for row in valid_cols:
-        # Index 4 onwards contains the class confidences
-        class_scores = row[4:]
-        class_id = np.argmax(class_scores)
-        score = class_scores[class_id]
-
-        if score >= conf_thresh:
-            cx, cy, nw, nh = row[0], row[1], row[2], row[3]
-            
-            x1 = int((cx - nw / 2) * (w / 256.0))
-            y1 = int((cy - nh / 2) * (h / 256.0))
-            x2 = int((cx + nw / 2) * (w / 256.0))
-            y2 = int((cy + nh / 2) * (h / 256.0))
-
-            cv2.rectangle(debug_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(debug_frame, f"ID {class_id}: {score:.2f}", (x1, y1 - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                        
-        
-            
-    return debug_frame
-
-
-def extract_largest_box(out_arr: np.ndarray, conf_thresh=0.25):
+def extract_largest_box(out_arr: np.ndarray, conf_thresh=0.25) -> tuple[dict, np.ndarray]:
     valid_cols = out_arr[:, out_arr[4, :] >= conf_thresh]
     if valid_cols.shape[1] == 0:
-        return None
+        return None, None
         
     valid_detections = valid_cols.T
     areas = valid_detections[:, 2] * valid_detections[:, 3]
@@ -66,7 +35,7 @@ def extract_largest_box(out_arr: np.ndarray, conf_thresh=0.25):
         "w": float(row[2]),
         "h": float(row[3]),
         "confidence": float(row[4])
-    }
+    }, row
 
 def clip_num(num: float, min_val, max_val):
     return max(min_val, min(num, max_val))

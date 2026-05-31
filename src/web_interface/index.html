@@ -1,54 +1,197 @@
-<!doctype html>  
-<html>  
-    <head>  
-        <meta charset="utf-8" />  
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-        <title>ROS2 Joystick – /cmd_vel</title>  
-        <link rel="stylesheet" href="style.css" />  
-        <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>  
-    </head>  
-    <body>  
-        <div class="container">  
-            <div class="joystick-panel">  
-                <div class="title">🕹️ VIRTUAL JOYSTICK</div>  
-                <canvas id="joystickCanvas" width="250" height="250"></canvas>  
-                <div class="controls">  
-                    <div class="scale-box">  
-                        <span>🐢</span>  
-                        <input  
-                            type="range"  
-                            id="speedScale"  
-                            min="0"  
-                            max="1.0"  
-                            step="0.01"  
-                            value="0.6"  
-                        />  
-                        <span>🐇</span>  
-                    </div>  
-                </div>  
-                <div class="status" id="statusMsg">Connecting to ROS2...</div>  
-                <div class="debug-output" id="debugOutput">  
-                    <div>linear.x: <span id="linearVal">0.000</span></div>  
-                    <div>angular.z: <span id="angularVal">0.000</span></div>  
-                </div>  
-            </div>  
-  
-            <!-- Gripper Control Panel -->  
-            <div class="gripper-panel">  
-                <div class="title">🦾 GRIPPER CONTROL</div>  
-                <div class="gripper-buttons">  
-                    <button id="btnOpen" class="grip-btn grip-open">OPEN GRIPPER</button>  
-                    <button id="btnClose" class="grip-btn grip-close">CLOSE GRIPPER</button>  
-                </div>  
-                <div class="gripper-status" id="gripperStatus">UNKNOWN</div>  
-            </div>  
-        </div>
-    <div class="camera-panel">
-        <div class="title">📹 CAMERA FEED</div>
-        <img id="cameraImage" src="" alt="Camera stream" style="width:100%; border-radius:12px; background:#111;" />
-        <div class="status" id="cameraStatus">Connecting to camera...</div>
-    </div>
-    </div>  
-        <script src="index.js"></script>  
-    </body>  
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Megajaw Control</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: [
+                                "Inter",
+                                "ui-sans-serif",
+                                "system-ui",
+                                "sans-serif",
+                            ],
+                        },
+                    },
+                },
+            };
+        </script>
+        <link rel="stylesheet" href="style.css" />
+        <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    </head>
+    <body class="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+        <main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-5">
+            <header class="rounded-lg border border-white/10 bg-zinc-900/90 p-3 shadow-2xl shadow-black/30 backdrop-blur">
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                            Megajaw
+                        </p>
+                        <h1 class="text-2xl font-semibold tracking-normal text-white sm:text-3xl">
+                            Drive Console
+                        </h1>
+                    </div>
+
+                    <div class="grid gap-2 sm:grid-cols-2 lg:min-w-[520px]">
+                        <section class="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+                            <div class="mb-2 flex items-center justify-between gap-2">
+                                <span class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                                    Connection
+                                </span>
+                                <span id="connectedEndpointLabel" class="rounded-full bg-zinc-800 px-2 py-1 text-xs font-semibold text-zinc-400">
+                                    Offline
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1 rounded-md bg-zinc-950/70 p-1">
+                                <button id="modeAuto" type="button" data-mode="auto" class="mode-btn">
+                                    Auto
+                                </button>
+                                <button id="modeGz" type="button" data-mode="gz" class="mode-btn">
+                                    GZ
+                                </button>
+                                <button id="modeReal" type="button" data-mode="real" class="mode-btn">
+                                    Real
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+                            <div class="mb-2 flex items-center justify-between gap-3">
+                                <div>
+                                    <span class="block text-xs font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                                        Autonomy
+                                    </span>
+                                    <span id="autoStateText" class="text-sm font-semibold text-zinc-300">
+                                        Manual control
+                                    </span>
+                                </div>
+                                <label class="relative inline-flex cursor-pointer items-center">
+                                    <input id="autoEnabledToggle" type="checkbox" class="peer sr-only" />
+                                    <span class="h-8 w-14 rounded-full bg-zinc-700 transition peer-checked:bg-emerald-500 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-cyan-300"></span>
+                                    <span class="absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow transition peer-checked:translate-x-6"></span>
+                                </label>
+                            </div>
+                            <p class="text-xs leading-5 text-zinc-500">
+                                Manual drive locks while autonomous mode is enabled.
+                            </p>
+                        </section>
+                    </div>
+                </div>
+            </header>
+
+            <section class="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:gap-4">
+                <div class="grid gap-3 lg:gap-4">
+                    <section class="overflow-hidden rounded-lg border border-white/10 bg-zinc-900 shadow-2xl shadow-black/30">
+                        <div class="flex items-center justify-between border-b border-white/10 px-3 py-2 sm:px-4">
+                            <div>
+                                <h2 class="text-sm font-semibold text-white sm:text-base">
+                                    Camera Feed
+                                </h2>
+                                <p id="cameraStatus" class="text-xs font-medium text-zinc-400">
+                                    Waiting for camera frames
+                                </p>
+                            </div>
+                            <span class="rounded-full bg-zinc-800 px-2 py-1 text-xs font-semibold text-zinc-300">
+                                <span id="fpsVal">0.0</span> FPS
+                            </span>
+                        </div>
+                        <div class="relative aspect-video bg-black">
+                            <img id="cameraImage" src="" alt="Camera stream" class="h-full w-full object-contain" />
+                            <div id="cameraPlaceholder" class="absolute inset-0 grid place-items-center text-center text-sm font-medium text-zinc-500">
+                                Camera stream will appear here
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-lg border border-white/10 bg-zinc-900 p-3 shadow-2xl shadow-black/30 sm:p-4">
+                        <div class="mb-3 flex items-center justify-between">
+                            <div>
+                                <h2 class="text-sm font-semibold text-white sm:text-base">
+                                    Feedback
+                                </h2>
+                                <p class="text-xs font-medium text-zinc-400">
+                                    Motion, target, and connection state
+                                </p>
+                            </div>
+                            <span id="statusMsg" class="status-pill status-warn">
+                                Connecting to ROS2
+                            </span>
+                        </div>
+
+                        <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                            <div class="metric-card">
+                                <span>linear.x</span>
+                                <strong id="linearVal">0.000</strong>
+                            </div>
+                            <div class="metric-card">
+                                <span>angular.z</span>
+                                <strong id="angularVal">0.000</strong>
+                            </div>
+                            <div class="metric-card">
+                                <span>target.err_x</span>
+                                <strong id="targetErrX">NA</strong>
+                            </div>
+                            <div class="metric-card">
+                                <span>target.depth</span>
+                                <strong id="targetDepth">NA</strong>
+                            </div>
+                        </div>
+
+                        <div id="eventLog" class="mt-3 max-h-28 overflow-y-auto rounded-md border border-white/10 bg-black/25 p-2 font-mono text-[11px] leading-5 text-zinc-400">
+                            <div>Console ready.</div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="grid gap-3 lg:gap-4">
+                    <section class="rounded-lg border border-white/10 bg-zinc-900 p-3 text-center shadow-2xl shadow-black/30 sm:p-4">
+                        <div class="mb-2 flex items-center justify-between">
+                            <h2 class="text-sm font-semibold text-white sm:text-base">
+                                Joystick
+                            </h2>
+                            <span id="joystickLockBadge" class="rounded-full bg-zinc-800 px-2 py-1 text-xs font-semibold text-zinc-400">
+                                Manual
+                            </span>
+                        </div>
+                        <div class="flex justify-center">
+                            <canvas id="joystickCanvas" width="250" height="250" class="h-[210px] w-[210px] sm:h-[250px] sm:w-[250px]"></canvas>
+                        </div>
+                        <div class="mt-4">
+                            <div class="mb-2 flex items-center justify-between text-xs font-semibold text-zinc-400">
+                                <span>Speed</span>
+                                <span><span id="speedScaleValue">60</span>%</span>
+                            </div>
+                            <input id="speedScale" type="range" min="0" max="1.0" step="0.01" value="0.6" class="w-full" />
+                        </div>
+                    </section>
+
+                    <section class="rounded-lg border border-white/10 bg-zinc-900 p-3 shadow-2xl shadow-black/30 sm:p-4">
+                        <div class="mb-3 flex items-center justify-between">
+                            <h2 class="text-sm font-semibold text-white sm:text-base">
+                                Gripper
+                            </h2>
+                            <span id="gripperStatus" class="rounded-full bg-zinc-800 px-2 py-1 text-xs font-semibold text-zinc-400">
+                                Unknown
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btnOpen" type="button" class="control-btn bg-emerald-500 text-emerald-950 hover:bg-emerald-400">
+                                Open
+                            </button>
+                            <button id="btnClose" type="button" class="control-btn bg-rose-500 text-rose-950 hover:bg-rose-400">
+                                Close
+                            </button>
+                        </div>
+                    </section>
+                </aside>
+            </section>
+        </main>
+
+        <script src="index.js"></script>
+    </body>
 </html>
