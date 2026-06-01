@@ -33,7 +33,7 @@ ament_target_dependencies(megajaw_hardware
 target_link_libraries(megajaw_hardware pigpiod_if2 pthread)
 
 # Plugin export
-pluginlib_export_plugin_description_file(hardware_interface megajaw_hardware.xml)
+pluginlib_export_plugin_description_file(hardware_interface megajaw_hardware_direct.xml)
 
 # Install
 install(TARGETS megajaw_hardware
@@ -44,7 +44,7 @@ install(DIRECTORY include/
   DESTINATION include
 )
 
-install(FILES megajaw_hardware.xml
+install(FILES megajaw_hardware_direct.xml
   DESTINATION share/${PROJECT_NAME}
 )
 
