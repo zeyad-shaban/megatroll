@@ -16,6 +16,6 @@ public:
 private:
     void setMotors(float speedPerc, int pinA, int pinB);
 
-    int pi_;
+    int pi;
     int _rpA, _rpB, _lpA, _lpB;
 };
