@@ -16,7 +16,10 @@ add_library(${PROJECT_NAME} SHARED
 )
 
 target_link_libraries(${PROJECT_NAME}
-  pigpio
+  PRIVATE
+  pigpiod_if2
+  rt
+  pthread
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -29,7 +32,7 @@ ament_target_dependencies(${PROJECT_NAME}
   pluginlib
 )
 
-pluginlib_export_plugin_description_file(hardware_interface megajaw_hardware_direct.xml)
+pluginlib_export_plugin_description_file(hardware_interface ${PROJECT_NAME}.xml)
 
 install(TARGETS ${PROJECT_NAME}
   DESTINATION lib
@@ -39,7 +42,7 @@ install(DIRECTORY include/
   DESTINATION include
 )
 
-install(FILES megajaw_hardware_direct.xml
+install(FILES ${PROJECT_NAME}.xml
   DESTINATION share/${PROJECT_NAME}
 )
 
