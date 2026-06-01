@@ -23,7 +23,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 # Link dependancies to pigpio and pthread
-ament_target_dependencies(megajaw_hardware
+ament_target_dependencies(${PROJECT_NAME}
   hardware_interface
   pluginlib
   rclcpp
@@ -36,7 +36,7 @@ target_link_libraries(${PROJECT_NAME} pigpiod_if2 pthread)
 pluginlib_export_plugin_description_file(hardware_interface megajaw_hardware_direct.xml)
 
 # Install
-install(TARGETS megajaw_hardware
+install(TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
 
