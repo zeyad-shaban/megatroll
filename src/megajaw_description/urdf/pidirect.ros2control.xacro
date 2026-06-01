@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <ros2_control name="MegaJawHardwareDirect" type="system">
         <hardware>
-            <plugin>megajaw_hardware_direct_direct/MegaJawHardwareDirect</plugin>
+            <plugin>megajaw_hardware_direct/MegaJawHardwareDirect</plugin>
 
             <param name="left_wheel_pin_a">5</param>
             <param name="left_wheel_pin_b">6</param>
