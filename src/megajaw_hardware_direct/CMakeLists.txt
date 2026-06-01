@@ -13,12 +13,12 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 
 # Create library: driver c files -> .so
-add_library(megajaw_hardware SHARED
+add_library(${PROJECT_NAME} SHARED
   src/MotorDriver.cpp
   src/megajaw_interface.cpp
 )
 
-target_include_directories(megajaw_hardware PRIVATE
+target_include_directories(${PROJECT_NAME} PRIVATE
   include
 )
 
@@ -30,7 +30,7 @@ ament_target_dependencies(megajaw_hardware
   rclcpp_lifecycle
 )
 
-target_link_libraries(megajaw_hardware pigpiod_if2 pthread)
+target_link_libraries(${PROJECT_NAME} pigpiod_if2 pthread)
 
 # Plugin export
 pluginlib_export_plugin_description_file(hardware_interface megajaw_hardware_direct.xml)
