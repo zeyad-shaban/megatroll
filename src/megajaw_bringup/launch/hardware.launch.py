@@ -14,7 +14,7 @@ def generate_launch_description():
         [FindPackageShare("megajaw_bringup"), "config", "diff_drive_controller.yaml"]
     )
 
-    robot_description_content = Command(["xacro ", urdf_path, " sim:=false"])
+    robot_description_content = Command(["xacro ", urdf_path, " backend_driver:=direct"]) # direct | stm
 
     robot_state_publisher = Node(
         package="robot_state_publisher",
@@ -133,7 +133,7 @@ def generate_launch_description():
                         "KW": 0.7,
                         "V_MAX": 0.6,
                         "KV": 1.3,
-                        "close_thresh": 0.05,
+                        "close_thresh": 0.05, # meters
                         "use_sim_time": False,
                     }
                 ],

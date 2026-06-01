@@ -1,20 +1,20 @@
-<?xml version="1.0"?>  
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro">  
-    <ros2_control name="MegaJawHardware" type="system">  
-        <hardware>  
-            <plugin>megajaw_hardware/MegaJawHardware</plugin>  
-            <param name="serial_port">/dev/ttyAMA0</param>  
-            <param name="baudrate">115200</param>  
-        </hardware>  
-        <joint name="left_wheel_base_joint">  
-            <command_interface name="velocity"/>  
-            <state_interface name="position"/>  
-            <state_interface name="velocity"/>  
-        </joint>  
-        <joint name="right_wheel_base_joint">  
-            <command_interface name="velocity"/>  
-            <state_interface name="position"/>  
-            <state_interface name="velocity"/>  
-        </joint>  
-    </ros2_control>  
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <ros2_control name="MegaJawHardwareDirect" type="system">
+        <hardware>
+            <plugin>megajaw_hardware_direct_direct/MegaJawHardwareDirect</plugin>
+
+            <param name="left_wheel_pin_a">5</param>
+            <param name="left_wheel_pin_b">6</param>
+            <param name="right_wheel_pin_a">26</param>
+            <param name="right_wheel_pin_b">19</param>
+        </hardware>
+
+        <joint name="left_wheel_base_joint">
+            <command_interface name="velocity" />
+        </joint>
+        <joint name="right_wheel_base_joint">
+            <command_interface name="velocity" />
+        </joint>
+    </ros2_control>
 </robot>

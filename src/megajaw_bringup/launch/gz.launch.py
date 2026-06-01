@@ -43,7 +43,7 @@ def generate_launch_description():
     debug_mode = LaunchConfiguration("debug", default="false")
 
     def robot_state_publisher_callback(context):
-        robot_description_content = Command(["xacro ", urdf_path, " sim:=true"])
+        robot_description_content = Command(["xacro ", urdf_path, " backend_driver:=sim"])
         robot_description = {"robot_description": robot_description_content}
         node_robot_state_publisher = Node(
             package="robot_state_publisher",
