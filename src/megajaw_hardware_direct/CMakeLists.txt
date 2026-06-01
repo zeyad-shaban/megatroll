@@ -15,6 +15,10 @@ add_library(${PROJECT_NAME} SHARED
   src/megajaw_direct_interface.cpp
 )
 
+target_link_libraries(${PROJECT_NAME}
+  pigpio
+)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
   include
 )
