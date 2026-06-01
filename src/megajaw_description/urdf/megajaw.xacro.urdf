@@ -7,16 +7,16 @@
     <xacro:include filename="./body.xacro" />
     <xacro:include filename="camera.xacro" />
 
-    <xacro:if value="$(backend_driver = sim)">
+    <xacro:if value="${'$(arg backend_driver)' == 'sim'}">
         <xacro:include filename="./gz.ros2control.xacro" />
         <xacro:include filename="gz_plugins.xacro" />
     </xacro:if>
 
-    <xacro:if value="$(backend_driver = stm)">
+    <xacro:if value="${'$(arg backend_driver)' == 'stm'}">
         <xacro:include filename="pistm.ros2control.xacro" />
     </xacro:if>
 
-    <xacro:if value="$(backend_driver = direct)">
+    <xacro:if value="${'$(arg backend_driver)' == 'direct'}">
         <xacro:include filename="pidirect.ros2control.xacro" />
     </xacro:if>
 </robot>
