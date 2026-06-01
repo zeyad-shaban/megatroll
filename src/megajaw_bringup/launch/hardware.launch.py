@@ -101,7 +101,7 @@ def generate_launch_description():
                     {
                         "camera_urls": [
                             "http://192.168.1.11:8080/video",
-                            "http://10.152.247.225:8080/video",
+                            "http://192.168.43.1:8080/video",
                         ]
                     },
                     {"use_sim_time": False},
