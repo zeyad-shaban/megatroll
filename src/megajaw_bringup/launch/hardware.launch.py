@@ -7,22 +7,16 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    urdf_path = os.path.join(
-        get_package_share_directory("megajaw_description"), "urdf", "megajaw.xacro.urdf"
-    )
-    controller_config = PathJoinSubstitution(
-        [FindPackageShare("megajaw_bringup"), "config", "diff_drive_controller.yaml"]
-    )
+    urdf_path = os.path.join(get_package_share_directory("megajaw_description"), "urdf", "megajaw.xacro.urdf")
+    controller_config = PathJoinSubstitution([FindPackageShare("megajaw_bringup"), "config", "diff_drive_controller.yaml"])
 
-    robot_description_content = Command(["xacro ", urdf_path, " backend_driver:=direct"]) # direct | stm
+    robot_description_content = Command(["xacro ", urdf_path, " backend_driver:=direct"])  # direct | stm
 
     robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[
-            {"robot_description": robot_description_content, "use_sim_time": False}
-        ],
+        parameters=[{"robot_description": robot_description_content, "use_sim_time": False}],
     )
 
     controller_manager = Node(
@@ -105,9 +99,12 @@ def generate_launch_description():
                         ]
                     },
                     {"use_sim_time": False},
+                    # Reconnection behavior parameters
+                    {"initial_retry_delay_ms": 1000},
+                    {"max_retry_delay_ms": 30000},
+                    {"backoff_multiplier": 1.2},
+                    {"max_consecutive_failures": 999999999},
                 ],
-                respawn=True,
-                respawn_delay=5.0,
             ),
             # Detector node (real hardware mode)
             Node(
@@ -133,7 +130,7 @@ def generate_launch_description():
                         "KW": 0.7,
                         "V_MAX": 0.6,
                         "KV": 1.3,
-                        "close_thresh": 0.05, # meters
+                        "close_thresh": 0.05,  # meters
                         "use_sim_time": False,
                     }
                 ],
