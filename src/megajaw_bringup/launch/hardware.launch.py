@@ -10,7 +10,7 @@ def generate_launch_description():
     urdf_path = os.path.join(get_package_share_directory("megajaw_description"), "urdf", "megajaw.xacro.urdf")
     controller_config = PathJoinSubstitution([FindPackageShare("megajaw_bringup"), "config", "diff_drive_controller.yaml"])
 
-    robot_description_content = Command(["xacro ", urdf_path, " backend_driver:=direct"])  # direct | stm
+    robot_description_content = Command(["xacro ", urdf_path, " backend_driver:=stm"])  # direct | stm
 
     robot_state_publisher = Node(
         package="robot_state_publisher",
