@@ -1,0 +1,8 @@
+<library path="megajaw_hardware_direct">
+  <class
+    name="megajaw_hardware_direct/MegaJawHardwareDirect"
+    type="megajaw_hardware_direct::MegaJawHardwareDirect"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>Direct GPIO hardware interface</description>
+  </class>
+</library>

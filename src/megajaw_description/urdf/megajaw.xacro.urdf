@@ -1,17 +1,22 @@
 <?xml version="1.0"?>
 <robot name="megajaw" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:arg name="sim" default="true"/>
+    <xacro:arg name="backend_driver" default="sim" />
     <xacro:include filename="./inertials.xacro" />
     <xacro:include filename="./materials.xacro" />
 
     <xacro:include filename="./body.xacro" />
     <xacro:include filename="camera.xacro" />
 
-    <xacro:if value="$(arg sim)">
+    <xacro:if value="${'$(arg backend_driver)' == 'sim'}">
         <xacro:include filename="./gz.ros2control.xacro" />
         <xacro:include filename="gz_plugins.xacro" />
     </xacro:if>
-    <xacro:unless value="$(arg sim)">
+
+    <xacro:if value="${'$(arg backend_driver)' == 'stm'}">
+        <xacro:include filename="pistm.ros2control.xacro" />
+    </xacro:if>
+
+    <xacro:if value="${'$(arg backend_driver)' == 'direct'}">
         <xacro:include filename="pidirect.ros2control.xacro" />
-    </xacro:unless>
+    </xacro:if>
 </robot>
