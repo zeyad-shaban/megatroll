@@ -3,186 +3,193 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <string>
-#include <cmath>
 
 using namespace std::chrono_literals;
 
 class CameraDriverNode : public rclcpp::Node
 {
-public:
-  enum class ConnectionState
+private:
+  // Configuration constants
+  static constexpr int DEFAULT_FPS = 10;
+  static constexpr int DEFAULT_WIDTH = 352;
+  static constexpr int DEFAULT_HEIGHT = 288;
+  static constexpr int DEFAULT_JPEG_QUALITY = 80;
+  static constexpr int DEFAULT_BUFFER_SIZE = 1;
+  static constexpr int DEFAULT_INITIAL_RETRY_MS = 1000;
+  static constexpr int DEFAULT_MAX_RETRY_MS = 5000;
+  static constexpr double DEFAULT_BACKOFF = 1.1;
+  static constexpr int QUICK_RETRY_MS = 100;
+
+  enum class State
   {
-    DISCONNECTED, // Not connected, not trying
-    CONNECTING,   // Attempting to connect
-    CONNECTED,    // Successfully connected
-    FAILED        // Max retries exhausted
+    DISCONNECTED,
+    CONNECTING,
+    CONNECTED,
+    FAILED
   };
 
+  // ROS2 components
+  rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr pub_;
+  rclcpp::TimerBase::SharedPtr reconnect_timer_;
+  rclcpp::TimerBase::SharedPtr capture_timer_;
+
+  // Camera and state
+  cv::VideoCapture cap_;
+  State state_ = State::DISCONNECTED;
+  int consecutive_failures_ = 0;
+  int current_retry_ms_ = DEFAULT_INITIAL_RETRY_MS;
+
+  // Parameters
+  std::vector<std::string> urls_;
+  std::string frame_id_;
+  int target_fps_;
+  int width_;
+  int height_;
+  int initial_retry_ms_;
+  int max_retry_ms_;
+  double backoff_;
+  int max_failures_;
+
+public:
   CameraDriverNode() : Node("camera_driver_node")
   {
-    // Declare parameters with defaults matching user-provided URLs
-    this->declare_parameter<std::vector<std::string>>("camera_urls",
-                                                      {"http://192.168.1.11:8080/video", "http://192.168.43.1:8080/video"});
-    this->declare_parameter<std::string>("frame_id", "camera_link_optical");
-    this->declare_parameter<int>("target_fps", 30);
-    this->declare_parameter<int>("width", 640);
-    this->declare_parameter<int>("height", 480);
-    this->declare_parameter<int>("initial_retry_delay_ms", 1000);
-    this->declare_parameter<int>("max_retry_delay_ms", 30000);
-    this->declare_parameter<double>("backoff_multiplier", 1.5);
-    this->declare_parameter<int>("max_consecutive_failures", 10);
+    // Declare and retrieve all parameters in one step
+    load_parameters();
 
-    // Retrieve parameters
-    this->get_parameter("camera_urls", camera_urls_);
-    this->get_parameter("frame_id", frame_id_);
-    this->get_parameter("target_fps", target_fps_);
-    this->get_parameter("width", width_);
-    this->get_parameter("height", height_);
-    this->get_parameter("initial_retry_delay_ms", initial_retry_delay_ms_);
-    this->get_parameter("max_retry_delay_ms", max_retry_delay_ms_);
-    this->get_parameter("backoff_multiplier", backoff_multiplier_);
-    this->get_parameter("max_consecutive_failures", max_consecutive_failures_);
+    // Setup publisher
+    pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/camera/image/compressed", 10);
 
-    // Publisher for compressed images (JPEG)
-    pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>(
-        "/camera/image/compressed", 10);
+    RCLCPP_INFO(this->get_logger(),
+                "Camera Driver initialized | FPS: %d | Retry: %dms->%dms (%.1fx backoff)",
+                target_fps_, initial_retry_ms_, max_retry_ms_, backoff_);
 
-    RCLCPP_INFO(this->get_logger(), "Camera Driver Node initialized");
-    RCLCPP_INFO(this->get_logger(), "Retry config: initial=%dms, max=%dms, backoff=%.1fx, max_failures=%d",
-                initial_retry_delay_ms_, max_retry_delay_ms_, backoff_multiplier_, max_consecutive_failures_);
+    // Start connection attempt
+    start_connection_attempt();
 
-    // Start initial connection attempt
-    set_state(ConnectionState::CONNECTING);
-    current_retry_delay_ms_ = initial_retry_delay_ms_;
-
-    // Timer to attempt connection (starts immediately)
-    reconnect_timer_ = this->create_wall_timer(
-        std::chrono::milliseconds(100),
-        std::bind(&CameraDriverNode::try_connect, this));
-
-    // Timer for frame capture (will only run when connected)
+    // Setup capture timer (paused until connected)
     capture_timer_ = this->create_wall_timer(
         std::chrono::milliseconds(1000 / target_fps_),
-        std::bind(&CameraDriverNode::capture_and_publish, this),
-        nullptr);
-
-    // Pause capture timer until connected
+        [this]()
+        { capture_and_publish(); });
     capture_timer_->cancel();
   }
 
 private:
-  void set_state(ConnectionState new_state)
+  void load_parameters()
   {
-    if (connection_state_ != new_state)
-    {
-      connection_state_ = new_state;
-      std::string state_str;
-      switch (new_state)
-      {
-      case ConnectionState::DISCONNECTED:
-        state_str = "DISCONNECTED";
-        break;
-      case ConnectionState::CONNECTING:
-        state_str = "CONNECTING";
-        break;
-      case ConnectionState::CONNECTED:
-        state_str = "CONNECTED";
-        break;
-      case ConnectionState::FAILED:
-        state_str = "FAILED";
-        break;
-      }
-      RCLCPP_INFO(this->get_logger(), "Connection state changed to: %s", state_str.c_str());
-    }
+    urls_ = this->declare_and_get<std::vector<std::string>>(
+        "camera_urls", {"http://192.168.1.11:8080/video", "http://192.168.43.1:8080/video"});
+    frame_id_ = this->declare_and_get<std::string>("frame_id", "camera_link_optical");
+    target_fps_ = this->declare_and_get<int>("target_fps", DEFAULT_FPS);
+    width_ = this->declare_and_get<int>("width", DEFAULT_WIDTH);
+    height_ = this->declare_and_get<int>("height", DEFAULT_HEIGHT);
+    initial_retry_ms_ = this->declare_and_get<int>("initial_retry_delay_ms", DEFAULT_INITIAL_RETRY_MS);
+    max_retry_ms_ = this->declare_and_get<int>("max_retry_delay_ms", DEFAULT_MAX_RETRY_MS);
+    backoff_ = this->declare_and_get<double>("backoff_multiplier", DEFAULT_BACKOFF);
+    max_failures_ = this->declare_and_get<int>("max_consecutive_failures", 999999999);
+  }
+
+  template <typename T>
+  T declare_and_get(const std::string &name, const T &default_value)
+  {
+    this->declare_parameter<T>(name, default_value);
+    return this->get_parameter(name).get_value<T>();
+  }
+
+  void set_state(State new_state)
+  {
+    if (state_ == new_state)
+      return;
+
+    state_ = new_state;
+    const char *state_names[] = {"DISCONNECTED", "CONNECTING", "CONNECTED", "FAILED"};
+    RCLCPP_INFO(this->get_logger(), "State → %s", state_names[static_cast<int>(new_state)]);
+  }
+
+  void start_connection_attempt()
+  {
+    set_state(State::CONNECTING);
+    if (reconnect_timer_)
+      reconnect_timer_->cancel();
+
+    reconnect_timer_ = this->create_wall_timer(
+        std::chrono::milliseconds(QUICK_RETRY_MS),
+        [this]()
+        { try_connect(); });
   }
 
   void try_connect()
   {
-    if (connection_state_ == ConnectionState::CONNECTED)
+    if (state_ == State::CONNECTED || state_ == State::FAILED)
+      return;
+
+    if (attempt_connect_to_any_camera())
     {
+      reconnect_timer_->cancel();
+      if (capture_timer_)
+        capture_timer_->reset();
+      return;
+    }
+
+    consecutive_failures_++;
+    if (consecutive_failures_ >= max_failures_)
+    {
+      set_state(State::FAILED);
+      RCLCPP_ERROR(this->get_logger(), "Max failures (%d) reached. Stopping.", max_failures_);
       reconnect_timer_->cancel();
       return;
     }
 
-    if (connection_state_ == ConnectionState::FAILED)
-    {
-      return; // Stop attempting
-    }
+    // Exponential backoff
+    current_retry_ms_ = std::min(static_cast<int>(current_retry_ms_ * backoff_), max_retry_ms_);
+    RCLCPP_WARN(this->get_logger(), "Connection failed. Retry %d/%d in %dms",
+                consecutive_failures_, max_failures_, current_retry_ms_);
 
-    if (!attempt_open_camera())
-    {
-      consecutive_failures_++;
-
-      if (consecutive_failures_ >= max_consecutive_failures_)
-      {
-        set_state(ConnectionState::FAILED);
-        RCLCPP_ERROR(this->get_logger(),
-                     "Max consecutive failures (%d) reached. Stopping reconnection attempts.",
-                     max_consecutive_failures_);
-        reconnect_timer_->cancel();
-        return;
-      }
-
-      // Exponential backoff
-      current_retry_delay_ms_ = std::min(
-          (int)(current_retry_delay_ms_ * backoff_multiplier_),
-          max_retry_delay_ms_);
-
-      RCLCPP_WARN(this->get_logger(),
-                  "Connection attempt failed. Next attempt in %dms (attempt %d/%d)",
-                  current_retry_delay_ms_, consecutive_failures_, max_consecutive_failures_);
-
-      // Update timer delay
-      reconnect_timer_->cancel();
-      reconnect_timer_ = this->create_wall_timer(
-          std::chrono::milliseconds(current_retry_delay_ms_),
-          std::bind(&CameraDriverNode::try_connect, this));
-    }
+    // Reschedule with new delay
+    reconnect_timer_->cancel();
+    reconnect_timer_ = this->create_wall_timer(
+        std::chrono::milliseconds(current_retry_ms_),
+        [this]()
+        { try_connect(); });
   }
 
-  bool attempt_open_camera()
+  bool attempt_connect_to_any_camera()
   {
-    for (const auto &url : camera_urls_)
+    for (const auto &url : urls_)
     {
-      RCLCPP_INFO(this->get_logger(), "Attempting to open camera URL: %s", url.c_str());
-
-      cv::VideoCapture test_cap;
-      test_cap.open(url, cv::CAP_FFMPEG);
-
-      if (test_cap.isOpened())
+      if (try_open_camera(url))
       {
-        // Verify we can actually read a frame
-        cv::Mat test_frame;
-        if (test_cap.read(test_frame) && !test_frame.empty())
-        {
-          // Connection successful
-          cap_ = std::move(test_cap);
-          configure_camera();
-          set_state(ConnectionState::CONNECTED);
-          consecutive_failures_ = 0;
-          current_retry_delay_ms_ = initial_retry_delay_ms_;
-
-          RCLCPP_INFO(this->get_logger(), "✓ Successfully connected to: %s", url.c_str());
-
-          // Resume capture timer
-          if (capture_timer_)
-          {
-            capture_timer_->reset();
-          }
-          return true;
-        }
-        test_cap.release();
+        set_state(State::CONNECTED);
+        consecutive_failures_ = 0;
+        current_retry_ms_ = initial_retry_ms_;
+        RCLCPP_INFO(this->get_logger(), "✓ Connected to: %s", url.c_str());
+        return true;
       }
     }
-
     return false;
+  }
+
+  bool try_open_camera(const std::string &url)
+  {
+    cv::VideoCapture test_cap(url, cv::CAP_FFMPEG);
+    if (!test_cap.isOpened())
+      return false;
+
+    cv::Mat frame;
+    if (!test_cap.read(frame) || frame.empty())
+    {
+      test_cap.release();
+      return false;
+    }
+
+    cap_ = std::move(test_cap);
+    configure_camera();
+    return true;
   }
 
   void configure_camera()
   {
-    // Reduce latency
-    cap_.set(cv::CAP_PROP_BUFFERSIZE, 1);
-    // Apply desired resolution if set
+    cap_.set(cv::CAP_PROP_BUFFERSIZE, DEFAULT_BUFFER_SIZE);
     if (width_ > 0 && height_ > 0)
     {
       cap_.set(cv::CAP_PROP_FRAME_WIDTH, width_);
@@ -192,34 +199,22 @@ private:
 
   void capture_and_publish()
   {
-    if (connection_state_ != ConnectionState::CONNECTED)
-    {
+    if (state_ != State::CONNECTED)
       return;
-    }
 
     cv::Mat frame;
     if (!cap_.isOpened() || !cap_.read(frame) || frame.empty())
     {
-      RCLCPP_WARN(this->get_logger(), "Camera connection lost. Initiating reconnection...");
-      set_state(ConnectionState::CONNECTING);
-      consecutive_failures_ = 0;
-      current_retry_delay_ms_ = initial_retry_delay_ms_;
-
-      // Pause capture and start reconnection
-      capture_timer_->cancel();
-
-      reconnect_timer_->cancel();
-      reconnect_timer_ = this->create_wall_timer(
-          std::chrono::milliseconds(100),
-          std::bind(&CameraDriverNode::try_connect, this));
+      RCLCPP_WARN(this->get_logger(), "Camera lost. Reconnecting...");
+      start_connection_attempt();
       return;
     }
 
     std::vector<uchar> buf;
-    std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 80};
+    std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, DEFAULT_JPEG_QUALITY};
     if (!cv::imencode(".jpg", frame, buf, params))
     {
-      RCLCPP_ERROR(this->get_logger(), "Failed to encode frame to JPEG");
+      RCLCPP_ERROR(this->get_logger(), "Failed to encode frame");
       return;
     }
 
@@ -230,33 +225,7 @@ private:
     msg.data = std::move(buf);
     pub_->publish(msg);
   }
-
-  // State management
-  ConnectionState connection_state_ = ConnectionState::DISCONNECTED;
-  int consecutive_failures_ = 0;
-  int current_retry_delay_ms_ = 1000;
-
-  // Reconnection parameters
-  int initial_retry_delay_ms_ = 1000;
-  int max_retry_delay_ms_ = 30000;
-  double backoff_multiplier_ = 1.5;
-  int max_consecutive_failures_ = 10;
-
-  // ROS2 components
-  rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr pub_;
-  rclcpp::TimerBase::SharedPtr capture_timer_;
-  rclcpp::TimerBase::SharedPtr reconnect_timer_;
-
-  // Camera state
-  cv::VideoCapture cap_;
-  std::vector<std::string> camera_urls_;
-  std::string frame_id_;
-  int target_fps_ = 30;
-  int width_ = 640;
-  int height_ = 480;
 };
-}
-;
 
 int main(int argc, char *argv[])
 {
