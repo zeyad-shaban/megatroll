@@ -29,7 +29,7 @@ public:
 private:
     void gripCallback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
     {
-        if (msg->data.size() >= 2 && msg->data[0] <= 0.3)
+        if (!(msg->data.size() >= 2 && msg->data[0] <= 0.3))
         {
             RCLCPP_INFO(this->get_logger(), "Received OPEN command via Float64MultiArray");
             gripper_driver_->openGripper();
