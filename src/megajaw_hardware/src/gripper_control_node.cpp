@@ -31,7 +31,7 @@ private:
     {
         if (!(msg->data.size() >= 2 && msg->data[0] <= 0.3))
         {
-            RCLCPP_INFO(this->get_logger(), "Received OPEN command via Float64MultiArray");
+            // RCLCPP_INFO(this->get_logger(), "Received OPEN command via Float64MultiArray");
             gripper_driver_->openGripper();
         }
         else

@@ -134,7 +134,7 @@ void GripperDriver::sendGripperCommand(uint8_t cmd)
 
 void GripperDriver::openGripper()
 {
-    std::cout << "Opening gripper..." << std::endl;
+    // std::cout << "Opening gripper..." << std::endl;
     sendGripperCommand(GRIPPER_OPEN);
 }
 
