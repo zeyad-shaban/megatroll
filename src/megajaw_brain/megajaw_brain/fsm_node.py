@@ -95,11 +95,11 @@ class ToTargetControllerNode(Node):
         w = clip_num(self.KW * self.target_ctrl.err_x, -self.W_MAX, self.W_MAX)
         v = clip_num(self.KV * self.target_ctrl.depth, 0.0, self.V_MAX)
 
-        # cmd_msg = TwistStamped()
-        # cmd_msg.twist.linear.x = v
-        # cmd_msg.twist.angular.z = w
+        cmd_msg = TwistStamped()
+        cmd_msg.twist.linear.x = v
+        cmd_msg.twist.angular.z = w
 
-        # self.cmd_vel_pub.publish(cmd_msg)
+        self.cmd_vel_pub.publish(cmd_msg)
 
         if self.target_ctrl.depth < self.close_thresh:
             self.get_logger().info("Changing State TO_TARGET -> GRIPPER_CLOSE...")
@@ -113,10 +113,10 @@ class ToTargetControllerNode(Node):
 
     def gripper_close(self):
         # Stop Car
-        cmd_msg = TwistStamped()
-        cmd_msg.twist.linear.x = 0.0
-        cmd_msg.twist.angular.z = 0.0
-        self.cmd_vel_pub.publish(cmd_msg)
+        # cmd_msg = TwistStamped()
+        # cmd_msg.twist.linear.x = 0.0
+        # cmd_msg.twist.angular.z = 0.0
+        # self.cmd_vel_pub.publish(cmd_msg)
 
         # Close Gripper
         msg = Float64MultiArray()

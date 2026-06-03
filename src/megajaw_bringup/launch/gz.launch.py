@@ -174,18 +174,18 @@ def generate_launch_description():
         parameters=[{"port": 9090}],
     )
 
-    joint_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[
-            "joint_state_broadcaster",
-            "--param-file",
-            diff_drive_controller_config,
-            "--controller-manager-timeout",
-            "50.0",
-        ],
-        output="screen",
-    )
+    # joint_state_broadcaster_spawner = Node(
+    #     package="controller_manager",
+    #     executable="spawner",
+    #     arguments=[
+    #         "joint_state_broadcaster",
+    #         "--param-file",
+    #         diff_drive_controller_config,
+    #         "--controller-manager-timeout",
+    #         "50.0",
+    #     ],
+    #     output="screen",
+    # )
 
     # Brain
     fsm_node = Node(
