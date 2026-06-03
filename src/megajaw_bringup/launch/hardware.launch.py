@@ -139,7 +139,7 @@ def generate_launch_description():
             joint_state_broadcaster_spawner,
             diff_drive_spawner,
             camera_driver,
-            detector_node,
+            # detector_node,
             fsm_node,
             rosbridge,
             gripper_control,

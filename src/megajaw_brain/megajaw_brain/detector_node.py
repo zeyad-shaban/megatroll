@@ -12,6 +12,15 @@ from megajaw_brain import constants
 from megajaw_interfaces.msg import TargetControl
 from ultralytics import YOLO
 import math
+import json
+import requests
+from threading import Lock
+
+# ========== MODE CONFIGURATION ==========
+# Set to "sim" for simulation or "real" for Raspberry Pi
+MODE = "real"  # "sim" | "real"
+REMOTE_ROS_URL = "http://zeyadcodepi.local:9090"
+# =========================================
 
 
 def get_depth_gz(width_px):
@@ -90,12 +99,41 @@ class DetectorNode(Node):
 
         self.publisher = self.create_publisher(TargetControl, "/target_state", 10)
 
+        # Remote publishing setup for real mode
+        self.mode = MODE
+        self.remote_ros_url = REMOTE_ROS_URL
+        self.publish_lock = Lock()
+
+        if self.mode == "real":
+            self.get_logger().info(f"Real mode enabled - publishing to {self.remote_ros_url}")
+            # Advertise the topic on remote rosbridge
+            self._advertise_remote_topic()
+        else:
+            self.get_logger().info("Sim mode enabled - publishing locally")
+
         # Persistent Target Lock Fields
         self.locked_track_id = None
         self.lost_frame_counter = 0
 
         self.declare_parameter("max_lost_frames", 30)
         self.max_lost_frames = self.get_parameter("max_lost_frames").value
+
+    def _advertise_remote_topic(self):
+        """Advertise the target_state topic on the remote rosbridge."""
+        try:
+            advertise_data = {"op": "advertise", "topic": "/target_state", "type": "megajaw_interfaces/TargetControl"}
+            requests.post(f"{self.remote_ros_url}/ros/subscribe", json=advertise_data, timeout=2)
+            self.get_logger().info("Remote topic advertised successfully")
+        except Exception as e:
+            self.get_logger().warn(f"Failed to advertise remote topic: {e}")
+
+    def _publish_remote(self, target_detected, err_x, depth):
+        """Publish TargetControl message to remote rosbridge."""
+        try:
+            msg_data = {"op": "publish", "topic": "/target_state", "msg": {"target_detected": target_detected, "err_x": float(err_x), "depth": float(depth)}}
+            requests.post(f"{self.remote_ros_url}/ros/publish", json=msg_data, timeout=1)
+        except Exception as e:
+            self.get_logger().debug(f"Remote publish failed: {e}")
 
     def image_callback(self, msg: CompressedImage):
         frame_bgr = imgmsg_to_cv2(msg)
@@ -183,6 +221,11 @@ class DetectorNode(Node):
                 # self.get_logger().info(f"Depth Width: {depth_w}, DepthHeight: {depth_h}, bbox_w_px: {bbox_w_px}, bbox_h_px: {bbox_h_px}")
 
         self.publisher.publish(ctrl_msg)
+
+        # Publish to remote ROS if in real mode
+        if self.mode == "real":
+            with self.publish_lock:
+                self._publish_remote(ctrl_msg.target_detected, ctrl_msg.err_x, ctrl_msg.depth)
 
         if self.debug:
             preview_frame = results.plot()
