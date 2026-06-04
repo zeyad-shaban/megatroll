@@ -174,19 +174,6 @@ def generate_launch_description():
         parameters=[{"port": 9090}],
     )
 
-    # joint_state_broadcaster_spawner = Node(
-    #     package="controller_manager",
-    #     executable="spawner",
-    #     arguments=[
-    #         "joint_state_broadcaster",
-    #         "--param-file",
-    #         diff_drive_controller_config,
-    #         "--controller-manager-timeout",
-    #         "50.0",
-    #     ],
-    #     output="screen",
-    # )
-
     # Brain
     fsm_node = Node(
         package="megajaw_brain",
@@ -199,7 +186,8 @@ def generate_launch_description():
                 "KW": 0.7,
                 "V_MAX": 0.6,
                 "KV": 1.3,
-                "close_thresh": 0.05,
+                "close_thresh": 0.14,
+                "close_countdown_secs": 1.5,
                 "use_sim_time": True,
             },
         ],

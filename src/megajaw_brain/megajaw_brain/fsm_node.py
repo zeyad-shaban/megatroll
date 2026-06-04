@@ -13,9 +13,10 @@ import time
 class STATES(enum.Enum):
     IDLE = 0
     TO_TARGET = 1
-    GRIPPER_CLOSE = 2
-    GO_HOME = 3
-    GRIPPER_OPEN = 4
+    ATTACH_ON_TARGET = 2
+    GRIPPER_CLOSE = 3
+    GO_HOME = 4
+    GRIPPER_OPEN = 5
 
 
 # Todo handle losing target
@@ -24,29 +25,26 @@ class ToTargetControllerNode(Node):
         super().__init__("to_target_controller_node")
         self.get_logger().info("to_target_controller_node Started")
 
+        self.declare_parameter("close_countdown_secs", 1.5)
         self.declare_parameter("close_thresh", 0.04)
-        self.close_thresh = self.get_parameter("close_thresh").value
-
         self.declare_parameter("W_MAX", 0.7)
         self.declare_parameter("KW", 0.7)
         self.declare_parameter("V_MAX", 0.6)
         self.declare_parameter("KV", 1.3)
 
-        self.W_MAX = self.get_parameter("W_MAX").value
-        self.KW = self.get_parameter("KW").value
-        self.V_MAX = self.get_parameter("V_MAX").value
-        self.KV = self.get_parameter("KV").value
+        self.close_countdown_secs: float = self.get_parameter("close_countdown_secs").value  # type: ignore
+        self.close_thresh: float = self.get_parameter("close_thresh").value  # type: ignore
+        self.W_MAX: float = self.get_parameter("W_MAX").value  # type: ignore
+        self.KW: float = self.get_parameter("KW").value  # type: ignore
+        self.V_MAX: float = self.get_parameter("V_MAX").value  # type: ignore
+        self.KV: float = self.get_parameter("KV").value  # type: ignore
 
         self.state = STATES["IDLE"]
 
-        self.gripper_pub = self.create_publisher(
-            Float64MultiArray, "/gripper_controller/commands", 10
-        )
+        self.gripper_pub = self.create_publisher(Float64MultiArray, "/gripper_controller/commands", 10)
         self.cmd_vel_pub = self.create_publisher(TwistStamped, "/cmd_vel", 10)
 
-        self.create_subscription(
-            TargetControl, "/target_state", self.on_target_state, 10
-        )
+        self.create_subscription(TargetControl, "/target_state", self.on_target_state, 10)
         self.create_subscription(Bool, "/auto_enabled", self.on_auto_enabled, 10)
         self.create_timer(1 / 30, self.main_loop)
 
@@ -55,6 +53,8 @@ class ToTargetControllerNode(Node):
 
         self.state_enter_time: None | float = None
         self.forward_duration = 0.0
+
+        self.close_countdown_start: None | float = None
 
     def main_loop(self):
         if not self.auto_enabled:
@@ -66,6 +66,8 @@ class ToTargetControllerNode(Node):
             self.idle()
         elif self.state == STATES.TO_TARGET:
             self.to_target()
+        elif self.state == STATES.ATTACH_ON_TARGET:
+            self.attach_on_target()
         elif self.state == STATES.GRIPPER_CLOSE:
             self.gripper_close()
         elif self.state == STATES.GO_HOME:
@@ -102,21 +104,32 @@ class ToTargetControllerNode(Node):
         self.cmd_vel_pub.publish(cmd_msg)
 
         if self.target_ctrl.depth < self.close_thresh:
-            self.get_logger().info("Changing State TO_TARGET -> GRIPPER_CLOSE...")
+            self.close_countdown_start = time.monotonic()
+            self.get_logger().info("Changing State TO_TARGET -> ATTACH_ON_TARGET...")
+            self.state = STATES.ATTACH_ON_TARGET
+
+    def attach_on_target(self):
+        assert self.close_countdown_start is not None, "self.close_countdown_start cannot be None..."
+        remaining_time = self.close_countdown_secs - (time.monotonic() - self.close_countdown_start)
+
+        self.get_logger().info(f"Target within close threshold, closing gripper in {remaining_time}")
+
+        if remaining_time <= 0:
+            self.get_logger().info("Changing State ATTACH_ON_TARGET -> GRIPPER_CLOSE...")
             self.state = STATES.GRIPPER_CLOSE
 
-            assert self.state_enter_time is not None, (
-                "Error self.state_enter_time cannot be None..."
-            )
+            assert self.state_enter_time is not None, "Error self.state_enter_time cannot be None..."
+            
             self.forward_duration = time.monotonic() - self.state_enter_time
             self.state_enter_time = time.monotonic()
-
+        
+        
     def gripper_close(self):
         # Stop Car
-        # cmd_msg = TwistStamped()
-        # cmd_msg.twist.linear.x = 0.0
-        # cmd_msg.twist.angular.z = 0.0
-        # self.cmd_vel_pub.publish(cmd_msg)
+        cmd_msg = TwistStamped()
+        cmd_msg.twist.linear.x = 0.0
+        cmd_msg.twist.angular.z = 0.0
+        self.cmd_vel_pub.publish(cmd_msg)
 
         # Close Gripper
         msg = Float64MultiArray()
@@ -134,9 +147,7 @@ class ToTargetControllerNode(Node):
         cmd_msg.twist.angular.z = 0.0
         self.cmd_vel_pub.publish(cmd_msg)
 
-        assert self.state_enter_time is not None, (
-            "Error self.state_enter_time cannot be None..."
-        )
+        assert self.state_enter_time is not None, "Error self.state_enter_time cannot be None..."
 
         elapsed_back = time.monotonic() - self.state_enter_time
         remaining = self.forward_duration - elapsed_back

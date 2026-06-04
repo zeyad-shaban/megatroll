@@ -8,7 +8,7 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    debug_mode_arg = DeclareLaunchArgument("debug", default_value="false", description="Enable debug mode")
+    debug_mode_arg = DeclareLaunchArgument("debug", default_value="true", description="Enable debug mode")
 
     camera_driver = Node(
         package="megajaw_wifi_camera",
@@ -33,7 +33,7 @@ def generate_launch_description():
         parameters=[
             {"max_lost_frames": 30},  # note: phone cam runs at 30fps
             {"conf_thresh": 0.7},
-            {"debug": PythonExpression(["'", LaunchConfiguration("debug", default="false"), "' == 'true'"])},
+            {"debug": PythonExpression(["'", LaunchConfiguration("debug"), "' == 'true'"])},
             {"is_sim": False},
             {"use_sim_time": False},
         ],

@@ -1,6 +1,6 @@
 // ---------- ROS2 setup ----------
 const URL_REAL = "ws://zeyadcodepi.local:9090";
-const URL_GZ = "ws://localhost:9090";
+const URL_GZ = "ws://192.168.1.4:9090";
 
 const ENDPOINTS = {
     gz: { label: "GZ", url: URL_GZ },

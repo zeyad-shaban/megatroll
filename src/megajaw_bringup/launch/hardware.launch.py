@@ -8,12 +8,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    debug_mode_arg = DeclareLaunchArgument(
-            'debug',
-            default_value='false',
-            description='Enable debug mode'
-    )
-    
     urdf_path = os.path.join(get_package_share_directory("megajaw_description"), "urdf", "megajaw.xacro.urdf")
     controller_config = PathJoinSubstitution([FindPackageShare("megajaw_bringup"), "config", "diff_drive_controller.yaml"])
 
@@ -104,7 +98,6 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            debug_mode_arg,
             robot_state_publisher,
             controller_manager,
             joint_state_broadcaster_spawner,
