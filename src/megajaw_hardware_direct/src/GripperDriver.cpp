@@ -1,4 +1,4 @@
-#include "GripperDriver.hpp"
+#include "megajaw_hardware_direct/GripperDriver.hpp"
 #include <pigpiod_if2.h>
 #include <iostream>
 
