@@ -79,7 +79,7 @@ class ToTargetControllerNode(Node):
     def idle(self):
         # Open Gripper
         msg = Float64MultiArray()
-        msg.data = [1.0, -1.0]
+        msg.data = [1.0]
         self.gripper_pub.publish(msg)
 
         # Is there visible confirmed tar(msg.err_x, msg.err_y)get?
@@ -133,7 +133,7 @@ class ToTargetControllerNode(Node):
 
         # Close Gripper
         msg = Float64MultiArray()
-        msg.data = [0.0, 0.0]
+        msg.data = [0.0]
         self.gripper_pub.publish(msg)
 
         # todo add delay if required
@@ -166,7 +166,7 @@ class ToTargetControllerNode(Node):
 
         # Open Gripper
         msg = Float64MultiArray()
-        msg.data = [1.0, -1.0]
+        msg.data = [1.0]
         self.gripper_pub.publish(msg)
 
         self.get_logger().info("Changing State GRIPPER_OPEN -> IDLE...")

@@ -199,6 +199,8 @@
 
     <joint name="gripper_ef2_base_joint" type="revolute">
         <origin xyz="${gripper_ef_offset_x} ${-gripper_ef_offset_y} ${gripper_ef_offset_z}" rpy="0 0 0" />
+        <mimic joint="gripper_ef1_base_joint" multiplier="-1.0" offset="0.0"/>
+
         <parent link="base_link" />
         <child link="gripper_ef2_link" />
         <axis xyz="0 0 1" />

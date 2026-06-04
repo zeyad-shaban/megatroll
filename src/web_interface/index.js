@@ -227,7 +227,7 @@ function setGripperStatus(text, className) {
 btnOpen.addEventListener("click", () => {
     if (!ros.isConnected || autoEnabled) return;
 
-    const msg = new ROSLIB.Message({ data: [1.0, -1.0] });
+    const msg = new ROSLIB.Message({ data: [1.0] });
     cmdGripPub.publish(msg);
     setGripperStatus(
         "Open",
@@ -239,7 +239,7 @@ btnOpen.addEventListener("click", () => {
 btnClose.addEventListener("click", () => {
     if (!ros.isConnected || autoEnabled) return;
 
-    const msg = new ROSLIB.Message({ data: [0.0, 0.0] });
+    const msg = new ROSLIB.Message({ data: [0.0] });
     cmdGripPub.publish(msg);
     setGripperStatus(
         "Closed",

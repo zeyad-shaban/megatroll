@@ -50,9 +50,19 @@ namespace megajaw_hardware_direct
       std::vector<hardware_interface::StateInterface> state_interfaces;
       for (size_t i = 0; i < info_.joints.size(); ++i)
       {
-        state_interfaces.emplace_back(info_.joints[i].name, "position", &hw_states_pos_[i]);
-        state_interfaces.emplace_back(info_.joints[i].name, "velocity", &hw_states_vel_[i]);
+        const auto &name = info_.joints[i].name;
+
+        if (name == "left_wheel_base_joint" || name == "right_wheel_base_joint")
+        {
+          state_interfaces.emplace_back(name, "position", &hw_states_pos_[i]);
+          state_interfaces.emplace_back(name, "velocity", &hw_states_vel_[i]);
+        }
+        else if (name == "gripper_ef1_base_joint")
+        {
+          state_interfaces.emplace_back(name, "position", &hw_states_pos_[i]);
+        }
       }
+
       return state_interfaces;
     }
 
@@ -61,18 +71,38 @@ namespace megajaw_hardware_direct
       std::vector<hardware_interface::CommandInterface> command_interfaces;
       for (size_t i = 0; i < info_.joints.size(); ++i)
       {
-        command_interfaces.emplace_back(info_.joints[i].name, "velocity", &hw_commands_[i]);
+        const auto &name = info_.joints[i].name;
+
+        if (name == "left_wheel_base_joint" || name == "right_wheel_base_joint")
+        {
+          command_interfaces.emplace_back(name, "velocity", &hw_commands_[i]);
+        }
+        else if (name == "gripper_ef1_base_joint")
+        {
+          command_interfaces.emplace_back(name, "position", &hw_commands_[i]);
+        }
       }
+
       return command_interfaces;
     }
 
     hardware_interface::return_type read(const rclcpp::Time &, const rclcpp::Duration &period) override
     {
-      for (size_t i = 0; i < hw_states_pos_.size(); ++i)
+      for (size_t i = 0; i < info_.joints.size(); ++i)
       {
-        hw_states_vel_[i] = hw_commands_[i];
-        hw_states_pos_[i] += hw_states_vel_[i] * period.seconds();
+        const auto &name = info_.joints[i].name;
+
+        if (name == "left_wheel_base_joint" || name == "right_wheel_base_joint")
+        {
+          hw_states_vel_[i] = hw_commands_[i];
+          hw_states_pos_[i] += hw_states_vel_[i] * period.seconds();
+        }
+        else if (name == "gripper_ef1_base_joint")
+        {
+          hw_states_pos_[i] = hw_commands_[i];
+        }
       }
+
       return hardware_interface::return_type::OK;
     }
 

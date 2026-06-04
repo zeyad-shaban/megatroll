@@ -12,7 +12,7 @@ public:
     GripperDriver(int servoPin);
     ~GripperDriver();
 
-    void setGripperPosition(float pos);
+    void setGripperPosition(double cmd);
 
 private:
     int pi;

@@ -31,9 +31,13 @@ GripperDriver::~GripperDriver()
     pigpio_stop(pi);
 }
 
-void GripperDriver::setGripperPosition(float pos)
+void GripperDriver::setGripperPosition(double cmd)
 {
-    std::cout << "Setting position to " << pos << std::endl;
+    if (cmd > 0.5) {
+        _openGripper();
+    } else {
+        _closeGripper();
+    }
 }
 
 void GripperDriver::_openGripper()
