@@ -63,10 +63,6 @@ install(TARGETS gripper_control_node
   DESTINATION lib/${PROJECT_NAME}  
 )  
 
-install(TARGETS camera_driver_node
-  DESTINATION lib/${PROJECT_NAME}
-)
-  
 install(DIRECTORY include/  
   DESTINATION include  
 )  
