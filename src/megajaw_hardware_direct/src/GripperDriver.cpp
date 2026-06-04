@@ -13,7 +13,7 @@ GripperDriver::GripperDriver(int servoPin) {
     _servoPin = servoPin;
 }
 
-Gripper::setGripperPosition(float pos) {
+GripperDriver::setGripperPosition(float pos) {
     std::cout << "Setting position to " << pos << std::endl;
 }
 GripperDriver::_openGripper() {
