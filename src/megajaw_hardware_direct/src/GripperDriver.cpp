@@ -39,16 +39,22 @@ void GripperDriver::_openGripper()
     std::lock_guard<std::mutex> lock(_mutex);
     if (_pi < 0) return;
 
+    if (_released) {
+        // Already open and powerless – ignore repeated open
+        std::cout << "[Gripper] open ignored (already released)" << std::endl;
+        return;
+    }
     if (_openTimerActive) {
-        // Already open (timer running) – ignore repeated open
+        // Timer running – still opening with power
         std::cout << "[Gripper] open ignored (already opening)" << std::endl;
         return;
     }
 
-    // Transition from closed (or released) to open-powered
+    // Transition from closed to open-powered
     std::cout << "[Gripper] open -> sending 2000 us, timer started (500ms)" << std::endl;
     set_servo_pulsewidth(_pi, _servoPin, 2000);
     _openTimerActive = true;
+    _released = false;
     _releaseTime = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
 }
 
@@ -57,11 +63,14 @@ void GripperDriver::_closeGripper()
     std::lock_guard<std::mutex> lock(_mutex);
     if (_pi < 0) return;
 
-    if (_openTimerActive) {
-        std::cout << "[Gripper] close -> cancelling timer, sending 1000 us (hold)" << std::endl;
-        _openTimerActive = false;
-    } else {
+    bool wasOpen = (_openTimerActive || _released);
+    _openTimerActive = false;
+    _released = false;
+
+    if (wasOpen) {
         std::cout << "[Gripper] close -> sending 1000 us (hold)" << std::endl;
+    } else {
+        std::cout << "[Gripper] close -> sending 1000 us (hold, was closed)" << std::endl;
     }
     set_servo_pulsewidth(_pi, _servoPin, 1000);
 }
@@ -82,6 +91,7 @@ void GripperDriver::_workerLoop()
                 set_servo_pulsewidth(_pi, _servoPin, 0);
                 set_mode(_pi, _servoPin, PI_INPUT);
                 _openTimerActive = false;
+                _released = true;
             }
         }
     }
