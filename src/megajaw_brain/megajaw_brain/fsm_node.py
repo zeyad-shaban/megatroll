@@ -22,8 +22,8 @@ class STATES(enum.Enum):
 # Todo handle losing target
 class ToTargetControllerNode(Node):
     def __init__(self):
-        super().__init__("to_target_controller_node")
-        self.get_logger().info("to_target_controller_node Started")
+        super().__init__("fsm_node")
+        self.get_logger().info("fsm_node Started")
 
         self.declare_parameter("close_countdown_secs", 1.5)
         self.declare_parameter("close_thresh", 0.04)
