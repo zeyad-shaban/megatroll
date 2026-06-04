@@ -8,10 +8,11 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    backend_driver = "direct"  # direct | stm
     urdf_path = os.path.join(get_package_share_directory("megajaw_description"), "urdf", "megajaw.xacro.urdf")
     controller_config = PathJoinSubstitution([FindPackageShare("megajaw_bringup"), "config", "diff_drive_controller.yaml"])
 
-    robot_description_content = Command(["xacro ", urdf_path, " backend_driver:=direct"])  # direct | stm
+    robot_description_content = Command(["xacro ", urdf_path, f" backend_driver:={backend_driver}"])
 
     robot_state_publisher = Node(
         package="robot_state_publisher",
@@ -68,7 +69,7 @@ def generate_launch_description():
     )
 
     gripper_control = Node(
-        package="megajaw_hardware",
+        package="megajaw_hardware" if backend_driver == "stm" else "megajaw_hardware_direct",
         executable="gripper_control_node",
         name="gripper_control_node",
         output="screen",
