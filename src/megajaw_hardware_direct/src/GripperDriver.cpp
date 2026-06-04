@@ -13,20 +13,20 @@ GripperDriver::GripperDriver(int servoPin) {
     _servoPin = servoPin;
 }
 
-GripperDriver::setGripperPosition(float pos) {
+void GripperDriver::setGripperPosition(float pos) {
     std::cout << "Setting position to " << pos << std::endl;
 }
-GripperDriver::_openGripper() {
+void GripperDriver::_openGripper() {
     set_servo_pulsewidth(pi, _servoPin, 2000); // open position
     std::this_thread::sleep_for(std::chrono::seconds(1));
     set_servo_pulsewidth(pi, _servoPin, 0); // release
 }
 
-GripperDriver::_closeGripper() {
+void GripperDriver::_closeGripper() {
     set_servo_pulsewidth(pi, _servoPin, 1000); // close position
 }
 
-GripperDriver::~GripperDriver() {
+void GripperDriver::~GripperDriver() {
     std::cout << "Cleaning GPIO state..." << std::endl;
     pigpio_stop(pi);
 }
