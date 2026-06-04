@@ -1,4 +1,5 @@
 #include "megajaw_hardware_direct/MotorDriver.hpp"
+#include "megajaw_hardware_direct/GripperDriver.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -90,8 +91,7 @@ namespace megajaw_hardware_direct
   private:
     std::unique_ptr<MotorDriver> driver_;
     std::unique_ptr<GripperDriver> gripper_driver;
-    size_t left_idx_{0}, right_idx_{1};
-    servo_idx{2};
+    size_t left_idx_{0}, right_idx_{1}, servo_idx{2};
     std::vector<double> hw_commands_, hw_states_pos_, hw_states_vel_;
   };
 
