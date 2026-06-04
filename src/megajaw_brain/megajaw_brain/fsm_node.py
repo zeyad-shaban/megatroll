@@ -55,6 +55,10 @@ class ToTargetControllerNode(Node):
         self.forward_duration = 0.0
 
         self.close_countdown_start: None | float = None
+        
+        msg = Float64MultiArray()
+        msg.data = [1.0]
+        self.gripper_pub.publish(msg)
 
     def main_loop(self):
         if not self.auto_enabled:
