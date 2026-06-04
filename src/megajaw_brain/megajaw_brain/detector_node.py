@@ -157,8 +157,16 @@ class DetectorNode(Node):
             # No detections at all — apply grace buffer logic if locked
             if self.locked_track_id is not None:
                 self.lost_frame_counter += 1
+                # LOG each missing frame, just like in the other branch
+                self.get_logger().info(
+                    f"[TargetLock] ID {self.locked_track_id} missing (no detections) "
+                    f"({self.lost_frame_counter}/{self.max_lost_frames})"
+                )
                 if self.lost_frame_counter > self.max_lost_frames:
-                    self.get_logger().warn(f"[TargetLock] Lock DROPPED on ID {self.locked_track_id} " f"(no detections for {self.lost_frame_counter} frames)")
+                    self.get_logger().warn(
+                        f"[TargetLock] Lock DROPPED on ID {self.locked_track_id} "
+                        f"(no detections for {self.lost_frame_counter} frames)"
+                    )
                     self.locked_track_id = None
                     self.lost_frame_counter = 0
 
