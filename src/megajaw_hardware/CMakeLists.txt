@@ -12,8 +12,6 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)  
 find_package(rclcpp_lifecycle REQUIRED)  
 find_package(std_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(OpenCV REQUIRED)  
   
 # Create library: driver c files -> .so  
 add_library(megajaw_hardware SHARED  
@@ -38,25 +36,6 @@ target_link_libraries(megajaw_hardware pthread)
   
 # Plugin export  
 pluginlib_export_plugin_description_file(hardware_interface megajaw_hardware.xml)  
-  
-# ─── Camera driver node ──────────────────────────────────────
-add_executable(camera_driver_node
-  src/camera_driver_node.cpp
-)
-
-target_include_directories(camera_driver_node PRIVATE
-  include
-  ${OpenCV_INCLUDE_DIRS}
-)
-
-ament_target_dependencies(camera_driver_node
-  rclcpp
-  sensor_msgs
-)
-
-target_link_libraries(camera_driver_node
-  ${OpenCV_LIBRARIES}
-)
   
 # ─── Gripper control node ───────────────────────────────────  
 add_executable(gripper_control_node  
