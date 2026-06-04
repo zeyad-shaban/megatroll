@@ -86,21 +86,6 @@ def generate_launch_description():
         ],
     )
 
-    camera_driver = Node(
-        package="megajaw_hardware",
-        executable="camera_driver_node",
-        name="camera_driver_node",
-        output="screen",
-        parameters=[
-            {
-                "camera_urls": [
-                    "http://192.168.1.11:8080/video",
-                    "http://192.168.43.1:8080/video",
-                ]
-            },
-        ],
-    )
-
     fsm_node = Node(
         package="megajaw_brain",
         executable="fsm_node",
@@ -117,20 +102,6 @@ def generate_launch_description():
         ],
     )
 
-    detector_node = Node(
-        package="megajaw_brain",
-        executable="detector_node",
-        name="detector_node",
-        output="screen",
-        parameters=[
-            {"max_lost_frames": 30},  # note: phone cam runs at 30fps
-            {"conf_thresh": 0.7},
-            {"debug": PythonExpression(["'", LaunchConfiguration("debug", default="false"), "' == 'true'"])},
-            {"is_sim": False},
-            {"use_sim_time": False},
-        ],
-    )
-
     return LaunchDescription(
         [
             debug_mode_arg,
@@ -138,8 +109,6 @@ def generate_launch_description():
             controller_manager,
             joint_state_broadcaster_spawner,
             diff_drive_spawner,
-            camera_driver,
-            # detector_node,
             fsm_node,
             rosbridge,
             gripper_control,
