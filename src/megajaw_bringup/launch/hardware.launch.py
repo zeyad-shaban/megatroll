@@ -73,12 +73,6 @@ def generate_launch_description():
         executable="gripper_control_node",
         name="gripper_control_node",
         output="screen",
-        parameters=[
-            {
-                "serial_port": "/dev/ttyAMA0",
-                "baudrate": 115200,
-            }
-        ],
     )
 
     fsm_node = Node(
