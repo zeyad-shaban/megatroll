@@ -113,8 +113,7 @@ namespace megajaw_hardware_direct
 
       driver_->setLeftMotor(left_pct);
       driver_->setRightMotor(right_pct);
-      std::cout << "Gripper command: " << hw_commands_[servo_idx] << std::endl;
-      // gripper_driver->setGripperPosition(hw_commands_[servo_idx]);
+      gripper_driver->setGripperPosition(hw_commands_[servo_idx]);
       return hardware_interface::return_type::OK;
     }
 
