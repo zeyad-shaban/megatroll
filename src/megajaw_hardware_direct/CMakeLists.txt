@@ -14,6 +14,7 @@ find_package(rclcpp_lifecycle REQUIRED)
 
 # Create library: driver c files -> .so
 add_library(${PROJECT_NAME} SHARED
+  src/GripperDriver.cpp
   src/MotorDriver.cpp
   src/megajaw_direct_interface.cpp
 )

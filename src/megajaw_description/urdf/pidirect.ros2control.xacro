@@ -4,8 +4,9 @@
         <hardware>
             <plugin>megajaw_hardware_direct/MegaJawHardwareDirect</plugin>
 
-            <param name="left_wheel_pin_a">5</param>
-            <param name="left_wheel_pin_b">6</param>
+            <param name="servo_pin">5</param>
+            <param name="left_wheel_pin_a">6</param>
+            <param name="left_wheel_pin_b">13</param>
             <param name="right_wheel_pin_a">26</param>
             <param name="right_wheel_pin_b">19</param>
         </hardware>
@@ -13,8 +14,15 @@
         <joint name="left_wheel_base_joint">
             <command_interface name="velocity" />
         </joint>
+        
         <joint name="right_wheel_base_joint">
             <command_interface name="velocity" />
+        </joint>
+        
+        <joint name="gripper_ef1_base_joint">
+            <command_interface name="position" />
+            <state_interface name="position" />
+            <state_interface name="velocity" />
         </joint>
     </ros2_control>
 </robot>

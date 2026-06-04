@@ -20,15 +20,18 @@ public:
         left_idx_ = i;
       } else if (info_.joints[i].name == "right_wheel_base_joint") {
         right_idx_ = i;
-      }
+      } else if (info_.joints[i].name == "gripper_ef1_base_joint") {
+        servo_idx = i;
     }
 
+    const int servoPin = std::stoi(info_.hardware_parameters.at("servo_pin"));
     const int lpA = std::stoi(info_.hardware_parameters.at("left_wheel_pin_a"));
     const int lpB = std::stoi(info_.hardware_parameters.at("left_wheel_pin_b"));
     const int rpA = std::stoi(info_.hardware_parameters.at("right_wheel_pin_a"));
     const int rpB = std::stoi(info_.hardware_parameters.at("right_wheel_pin_b"));
 
     driver_ = std::make_unique<MotorDriver>(rpA, rpB, lpA, lpB);
+    gripper_driver = std::make_unique<GripperDriver>(servoPin);
 
     hw_commands_.assign(info_.joints.size(), 0.0);
     hw_states_pos_.assign(info_.joints.size(), 0.0);
@@ -72,13 +75,15 @@ public:
 
     driver_->setLeftMotor(left_pct);
     driver_->setRightMotor(right_pct);
-
+    std::cout << "Gripper command: " << hw_commands_[servo_idx] << std::endl;
+    // gripper_driver->setGripperPosition(hw_commands_[servo_idx]);
     return hardware_interface::return_type::OK;
   }
 
 private:
   std::unique_ptr<MotorDriver> driver_;
-  size_t left_idx_{0}, right_idx_{1};
+  std::unique_ptr<GripperDriver> gripper_driver;
+  size_t left_idx_{0}, right_idx_{1}; servo_idx{2};
   std::vector<double> hw_commands_, hw_states_pos_, hw_states_vel_;
 };
 
