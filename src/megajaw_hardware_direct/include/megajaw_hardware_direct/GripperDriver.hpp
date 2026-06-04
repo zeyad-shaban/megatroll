@@ -2,9 +2,8 @@
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
-#include <mutex>
 #include <thread>
+#include <mutex>
 
 class GripperDriver
 {
@@ -15,17 +14,14 @@ public:
     void setGripperPosition(double cmd);
 
 private:
-    int pi;
     int _servoPin;
+    int _pi;  // pigpio handle
 
+    std::atomic<bool> _stop{false};
+    std::atomic<bool> _releasePending{false};
+    std::chrono::steady_clock::time_point _releaseTime;
     std::thread _worker;
     std::mutex _mutex;
-    std::condition_variable _cv;
-    bool _stop{false};
-
-    bool _releasePending{false};
-    std::chrono::steady_clock::time_point _releaseAt;
-    int _generation{0};
 
     void _openGripper();
     void _closeGripper();
