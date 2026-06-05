@@ -22,8 +22,8 @@ class STATES(enum.Enum):
 # Todo handle losing target
 class ToTargetControllerNode(Node):
     def __init__(self):
-        super().__init__("to_target_controller_node")
-        self.get_logger().info("to_target_controller_node Started")
+        super().__init__("fsm_node")
+        self.get_logger().info("fsm_node Started")
 
         self.declare_parameter("close_countdown_secs", 1.5)
         self.declare_parameter("close_thresh", 0.04)
@@ -55,6 +55,10 @@ class ToTargetControllerNode(Node):
         self.forward_duration = 0.0
 
         self.close_countdown_start: None | float = None
+        
+        msg = Float64MultiArray()
+        msg.data = [1.0]
+        self.gripper_pub.publish(msg)
 
     def main_loop(self):
         if not self.auto_enabled:
