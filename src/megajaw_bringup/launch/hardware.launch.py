@@ -106,7 +106,7 @@ def generate_launch_description():
                 "KW": 0.7,
                 "V_MAX": 0.5,
                 "KV": 0.9,
-                "close_thresh": 0.25,  # meters
+                "close_thresh": 0.5,  # meters
                 "use_sim_time": False,
             }
         ],

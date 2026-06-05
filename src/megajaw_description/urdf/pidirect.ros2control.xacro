@@ -7,8 +7,8 @@
             <param name="servo_pin">5</param>
             <param name="left_wheel_pin_a">6</param>
             <param name="left_wheel_pin_b">13</param>
-            <param name="right_wheel_pin_a">26</param>
-            <param name="right_wheel_pin_b">19</param>
+            <param name="right_wheel_pin_a">19</param>
+            <param name="right_wheel_pin_b">26</param>
         </hardware>
 
         <joint name="left_wheel_base_joint">
