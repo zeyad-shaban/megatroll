@@ -103,9 +103,9 @@ def generate_launch_description():
         parameters=[
             {
                 "W_MAX": 0.7,
-                "KW": 0.7,
-                "V_MAX": 0.5,
-                "KV": 0.9,
+                "KW": 0.9,
+                "V_MAX": 0.7,
+                "KV": 0.7,
                 "close_thresh": 0.5,  # meters
                 "use_sim_time": False,
             }
