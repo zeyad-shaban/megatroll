@@ -319,5 +319,3 @@ The camera node keeps the OpenCV buffer small to reduce latency and publishes JP
 ## Status
 
 MegaJaw is a robotics prototype and portfolio project. The repository demonstrates the full loop from simulation to perception, manual control, autonomous behavior, and real hardware integration.
-
-# Training done here: https://www.kaggle.com/code/zeyadcode/megatroll-dataset-training
