@@ -1,8 +1,8 @@
 # MegaJaw
 
-<!-- [![MegaJaw project walkthrough](https://img.youtube.com/vi/nNZg3iLsRV4/maxresdefault.jpg)](https://www.youtube.com/watch?v=nNZg3iLsRV4) -->
+[![MegaJaw project technical walkthrough and demo](https://img.youtube.com/vi/f1KNS37ejUI/maxresdefault.jpg)](https://www.youtube.com/watch?v=f1KNS37ejUI)
 
-<!-- **Project walkthrough:** [Watch the MegaJaw explanation and demo on YouTube](https://www.youtube.com/watch?v=nNZg3iLsRV4) -->
+**Project walkthrough & Demo:** [Watch the MegaJaw technical explanation and demo on YouTube](https://www.youtube.com/watch?v=f1KNS37ejUI)
 
 MegaJaw is a ROS 2 autonomous mobile robot that detects, approaches, grips, and returns water bottles so it can keep searching for the next target. The project combines a differential-drive base, camera-based bottle detection, a custom gripper, Gazebo simulation, real hardware control, and a browser dashboard into one robotics workspace.
 
@@ -10,15 +10,13 @@ The goal is environmentally focused bottle recovery: MegaJaw patrols an area, id
 
 ## Project Media
 
-The README expects project media under `docs/assets/`. See `docs/assets/TODO.md` for the exact files to add.
-
-| Hardware | Gazebo Simulation |
+| Web Dashboard (with Gazebo Simulation) | Circuit |
 | --- | --- |
-| ![MegaJaw hardware overview](docs/assets/hardware-overview.jpg) | ![MegaJaw Gazebo simulation](docs/assets/gazebo-simulation.jpg) |
+| ![MegaJaw web dashboard](docs/assets/web-dashboard.png) | ![MegaJaw circuit](docs/assets/circuit.png) |
 
-| Web Dashboard | Circuit / CAD |
+| CAD | Documentation |
 | --- | --- |
-| ![MegaJaw web dashboard](docs/assets/web-dashboard.jpg) | ![MegaJaw circuit and CAD overview](docs/assets/circuit-cad-overview.jpg) |
+| ![MegaJaw CAD](docs/assets/cad.png) | [MegaJaw Documentation PDF](./MegaJaw_Documentation.pdf) |
 
 ## Highlights
 
@@ -27,7 +25,7 @@ The README expects project media under `docs/assets/`. See `docs/assets/TODO.md`
 - Real-world bottle detection using an Ultralytics YOLO NCNN model.
 - Autonomous finite-state controller for target approach, gripper close, return motion, and release.
 - ROS 2 control support for Gazebo, STM32-over-UART, and direct Raspberry Pi GPIO motor control.
-- Browser-based control console using ROSBridge, joystick driving, gripper controls, live camera feed, target telemetry, and autonomous mode toggle.
+- Unified web-dashboard that combines Gazebo simulation viewing and real-world control using ROSBridge, joystick driving, gripper controls, live camera feed, target telemetry, and autonomous mode toggle.
 - Custom robot description with differential drive, front camera, caster, and two-finger gripper.
 
 ## System Architecture
@@ -128,13 +126,21 @@ The simulation world uses red box targets as bottle stand-ins. This keeps Gazebo
 
 ### Real Hardware
 
-Launch the real robot stack:
+Launch the real robot stack on the Raspberry Pi:
 
 ```bash
 ros2 launch megajaw_bringup hardware.launch.py
 ```
 
-The hardware launch starts the robot description, ROS 2 control, camera driver, bottle detector, autonomous FSM, ROSBridge, and gripper control node.
+Originally, the hardware launch started the full perception stack on the Pi. However, because the Raspberry Pi has limited compute power, `hardware.launch.py` no longer launches the camera node. We tried both options, and performance is much better when offloading perception.
+
+To run the camera node and detector on your PC, use:
+
+```bash
+ros2 launch megajaw_bringup detector.launch.py
+```
+
+The hardware launch still handles the robot description, ROS 2 control, ROSBridge, and gripper control node.
 
 By default, `hardware.launch.py` uses the STM32 backend:
 
